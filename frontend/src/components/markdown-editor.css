@@ -1,0 +1,170 @@
+.markdown-editor {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.markdown-textarea {
+  width: 100%;
+  min-height: 500px;
+  padding: 1rem;
+  border: none;
+  font-family: "Fira Code", "Monaco", "Courier New", monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+  color: #1f2937;
+  background: #f9fafb;
+}
+
+.markdown-textarea:focus {
+  outline: none;
+  background: #fff;
+}
+
+.markdown-preview {
+  min-height: 500px;
+  padding: 1rem;
+  line-height: 1.8;
+  color: #1f2937;
+}
+
+/* Heading Styles - Support for all levels */
+.markdown-preview h1,
+.markdown-preview .markdown-h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 1.5rem 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+  color: #111827;
+}
+
+.markdown-preview h2,
+.markdown-preview .markdown-h2 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 1.25rem 0 0.75rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid #e5e7eb;
+  color: #1f2937;
+}
+
+.markdown-preview h3,
+.markdown-preview .markdown-h3 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 1rem 0 0.5rem;
+  color: #374151;
+}
+
+.markdown-preview h4,
+.markdown-preview .markdown-h4 {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin: 0.75rem 0 0.5rem;
+  color: #4b5563;
+}
+
+.markdown-preview h5,
+.markdown-preview .markdown-h5 {
+  font-size: 1rem;
+  font-weight: bold;
+  margin: 0.75rem 0 0.5rem;
+  color: #6b7280;
+}
+
+.markdown-preview h6,
+.markdown-preview .markdown-h6 {
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin: 0.75rem 0 0.5rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.markdown-preview p {
+  margin: 1rem 0;
+}
+
+.markdown-preview a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.markdown-preview a:hover {
+  text-decoration: underline;
+}
+
+.markdown-preview ul,
+.markdown-preview ol {
+  margin: 1rem 0;
+  padding-left: 2rem;
+}
+
+.markdown-preview li {
+  margin: 0.5rem 0;
+}
+
+.markdown-preview blockquote {
+  border-left: 4px solid #3b82f6;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: #6b7280;
+  font-style: italic;
+}
+
+.markdown-preview pre {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 1rem 0;
+  font-family: "Fira Code", "Monaco", "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.markdown-preview code {
+  background: #f3f4f6;
+  color: #d97706;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-family: "Fira Code", "Monaco", "Courier New", monospace;
+  font-size: 13px;
+}
+
+.markdown-preview pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+}
+
+.markdown-preview hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 2rem 0;
+}
+
+.markdown-preview table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+}
+
+.markdown-preview th,
+.markdown-preview td {
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem 1rem;
+  text-align: left;
+}
+
+.markdown-preview th {
+  background: #f3f4f6;
+  font-weight: bold;
+}

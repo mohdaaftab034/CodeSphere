@@ -1,0 +1,214 @@
+.markdown-renderer {
+  color: #1f2937;
+  line-height: 1.8;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Heading Styles - Support for all levels */
+.markdown-renderer h1,
+.markdown-renderer .markdown-h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 1.5rem 0 0.75rem;
+  color: #111827;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+@media (min-width: 640px) {
+  .markdown-renderer h1,
+  .markdown-renderer .markdown-h1 {
+    font-size: 2rem;
+    margin: 2rem 0 1rem;
+  }
+}
+
+.markdown-renderer h2,
+.markdown-renderer .markdown-h2 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin: 1.25rem 0 0.5rem;
+  color: #1f2937;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .markdown-renderer h2,
+  .markdown-renderer .markdown-h2 {
+    font-size: 1.5rem;
+    margin: 1.5rem 0 0.75rem;
+  }
+}
+
+.markdown-renderer h3,
+.markdown-renderer .markdown-h3 {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin: 1rem 0 0.5rem;
+  color: #374151;
+}
+
+@media (min-width: 640px) {
+  .markdown-renderer h3,
+  .markdown-renderer .markdown-h3 {
+    font-size: 1.25rem;
+    margin: 1.25rem 0 0.5rem;
+  }
+}
+
+.markdown-renderer h4,
+.markdown-renderer .markdown-h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+  color: #4b5563;
+}
+
+.markdown-renderer h5,
+.markdown-renderer .markdown-h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+  color: #6b7280;
+}
+
+.markdown-renderer h6,
+.markdown-renderer .markdown-h6 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.markdown-renderer p {
+  margin: 0.75rem 0;
+  text-align: justify;
+  font-size: 0.95rem;
+  overflow-wrap: break-word;
+}
+
+@media (min-width: 640px) {
+  .markdown-renderer p {
+    margin: 1rem 0;
+    font-size: 1rem;
+  }
+}
+
+.markdown-renderer a {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.markdown-renderer a:hover {
+  text-decoration: underline;
+}
+
+.markdown-renderer ul,
+.markdown-renderer ol {
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .markdown-renderer ul,
+  .markdown-renderer ol {
+    margin: 1rem 0;
+    padding-left: 2rem;
+  }
+}
+
+.markdown-renderer li {
+  margin: 0.5rem 0;
+}
+
+.markdown-renderer blockquote {
+  border-left: 4px solid #3b82f6;
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: #6b7280;
+  font-style: italic;
+  background: #f0f9ff;
+  padding: 1rem;
+  border-radius: 4px;
+}
+
+.code-block-wrapper {
+  margin: 1rem 0;
+  border-radius: 6px;
+  overflow: auto;
+  max-width: 100%;
+}
+
+@media (min-width: 640px) {
+  .code-block-wrapper {
+    margin: 1.5rem 0;
+  }
+}
+
+.code-block-wrapper pre {
+  margin: 0 !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.code-block-wrapper pre {
+  margin: 0 !important;
+}
+
+.inline-code {
+  background: #f3f4f6;
+  color: #d97706;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-family: "Fira Code", "Monaco", "Courier New", monospace;
+  font-size: 0.9em;
+}
+
+.markdown-renderer hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 2rem 0;
+}
+
+.markdown-renderer table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.5rem 0;
+  border: 1px solid #e5e7eb;
+}
+
+.markdown-renderer th,
+.markdown-renderer td {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+
+.markdown-renderer th {
+  background: #f3f4f6;
+  font-weight: 600;
+  color: #374151;
+}
+
+.markdown-renderer strong {
+  font-weight: 600;
+  color: #111827;
+}
+
+.markdown-renderer em {
+  font-style: italic;
+}
+
+.markdown-renderer code[class*="language-"],
+.markdown-renderer pre[class*="language-"] {
+  text-shadow: none !important;
+}
