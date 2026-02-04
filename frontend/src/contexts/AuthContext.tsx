@@ -5,6 +5,7 @@ interface User {
   name: string
   email: string
   role: "admin" | "user"
+  isPaid: boolean
   avatar?: string
   authProvider?: "local" | "google"
 }
@@ -16,6 +17,7 @@ interface AuthContextType {
   login: (token: string, user: User) => void
   logout: () => void
   isAdmin: boolean
+  isPaid: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -31,10 +33,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const savedToken = localStorage.getItem("token")
     const savedUser = localStorage.getItem("user")
 
-    if (savedToken && savedUser) {
+    if (savedToken && savedToken !== "null" && savedUser && savedUser !== "null") {
       try {
         const parsedUser = JSON.parse(savedUser)
-        console.log("✅ Loaded user from localStorage:", parsedUser)
         // Set both state variables together in a batch update
         setToken(savedToken)
         setUser(parsedUser)
@@ -53,18 +54,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [])
 
   const login = (token: string, user: User) => {
-    console.log("🔐 Logging in user:", user)
+    // Ensure user has a role, default to "user" if missing
+    const userWithRole = {
+      ...user,
+      role: user.role || "user"
+    }
+
     setToken(token)
-    setUser(user)
+    setUser(userWithRole)
 
     // Save to localStorage
     localStorage.setItem("token", token)
-    localStorage.setItem("user", JSON.stringify(user))
-    localStorage.setItem("isAdmin", user.role === "admin" ? "true" : "false")
+    localStorage.setItem("user", JSON.stringify(userWithRole))
+    localStorage.setItem("isAdmin", userWithRole.role === "admin" ? "true" : "false")
   }
 
   const logout = () => {
-    console.log("🚪 Logging out user")
     setUser(null)
     setToken(null)
     localStorage.removeItem("token")
@@ -79,6 +84,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     login,
     logout,
     isAdmin: user?.role === "admin",
+    isPaid: user?.isPaid || false,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

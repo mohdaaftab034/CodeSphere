@@ -32,7 +32,12 @@ interface User {
 }
 
 export default function UserManagementPage() {
-  const navigate = useNavigate();
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    document.title = `Manage Users | ${websiteName}`
+  }, [websiteName]);
   const { token } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState("");

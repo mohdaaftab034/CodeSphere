@@ -7,7 +7,7 @@ export const createChapter = async (req, res) => {
     const { title, slug, description, icon, gradient } = req.body
     if (!title || !title.trim()) {
       return res.status(400).json({ message: "Chapter title is required" })
-    }
+    } 
 
     const finalSlug = slug?.trim() || createSlug(title)
 
@@ -16,7 +16,7 @@ export const createChapter = async (req, res) => {
       return res.status(400).json({ message: "Chapter slug already exists" })
     }
 
-    const chapter = await Chapter.create({
+    const chapter = await Chapter.create({ 
       title: title.trim(),
       slug: finalSlug,
       description: description || "",

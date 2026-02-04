@@ -1,11 +1,9 @@
-import { useState, useCallback } from "react"
-import { useParams, useNavigate, Link } from "react-router-dom"
+import { useState, useCallback, useMemo, useEffect } from "react"
+import { useParams, useNavigate } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   ChevronDown,
-  Lightbulb,
   ArrowLeft,
-  Download,
   Search,
   Code2,
   Atom,
@@ -13,15 +11,24 @@ import {
   Briefcase,
   Trophy,
   Target,
+  Filter,
+  CheckCircle2,
+  Download,
+  Lock,
+  Loader2,
 } from "lucide-react"
 import { Navbar } from "../components/Navbar"
 import { Footer } from "../components/Footer"
 import { Button } from "../components/ui/button"
 import { Badge } from "../components/ui/badge"
 import { Input } from "../components/ui/input"
+import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet"
 import { useQuery } from "../hooks/useQuery"
 import { interviewAPI } from "../lib/api"
 import { InterviewQuestionRenderer } from "../components/InterviewQuestionRenderer"
+import { useAuth } from "../contexts/AuthContext"
+import SubscriptionModal from "../components/SubscriptionModal"
+import { toast } from "react-hot-toast"
 
 // Role definitions
 const roles: Record<string, {
@@ -80,170 +87,30 @@ const roles: Record<string, {
   },
 }
 
-// Sample questions with role relevance
-const allQuestions = [
-  {
-    id: 1,
-    q: "What is the difference between var, let, and const?",
-    difficulty: "beginner",
-    topic: "javascript",
-    roles: ["software-developer", "web-developer", "frontend-developer", "fullstack-developer"],
-    answer:
-      "var is function-scoped and can be redeclared, let is block-scoped and cannot be redeclared in the same scope, const is block-scoped and cannot be reassigned after declaration. const is commonly used for values that should not change.",
-  },
-  {
-    id: 2,
-    q: "Explain closures in JavaScript",
-    difficulty: "intermediate",
-    topic: "javascript",
-    roles: ["software-developer", "web-developer", "frontend-developer", "fullstack-developer"],
-    answer:
-      "A closure is a function that has access to variables in its outer (enclosing) lexical scope, even after the outer function has returned. This happens because functions in JavaScript form closures around the data they use.",
-  },
-  {
-    id: 3,
-    q: "What is the Event Loop?",
-    difficulty: "advanced",
-    topic: "javascript",
-    roles: ["software-developer", "web-developer", "backend-developer", "fullstack-developer"],
-    answer:
-      "The Event Loop is the mechanism that allows JavaScript to perform non-blocking operations despite being single-threaded. It continuously checks the call stack and callback queue, executing callbacks when the stack is empty.",
-  },
-  {
-    id: 4,
-    q: "What is the Virtual DOM?",
-    difficulty: "beginner",
-    topic: "react",
-    roles: ["web-developer", "frontend-developer", "fullstack-developer"],
-    answer:
-      "The Virtual DOM is a lightweight copy of the actual DOM kept in memory. React uses it to compare changes (diffing) and update only the parts of the real DOM that changed, improving performance.",
-  },
-  {
-    id: 5,
-    q: "Explain useEffect hook",
-    difficulty: "intermediate",
-    topic: "react",
-    roles: ["web-developer", "frontend-developer", "fullstack-developer"],
-    answer:
-      "useEffect is used for side effects in functional components. It runs after render and can optionally clean up. The dependency array controls when it re-runs. Common uses include fetching data, subscriptions, and DOM manipulation.",
-  },
-  {
-    id: 6,
-    q: "How does React reconciliation work?",
-    difficulty: "advanced",
-    topic: "react",
-    roles: ["frontend-developer", "fullstack-developer"],
-    answer:
-      "React reconciliation is the process of comparing the new Virtual DOM with the previous one to determine the minimum number of changes needed to update the real DOM. It uses a diffing algorithm with heuristics like same-level comparison and key-based optimization.",
-  },
-  {
-    id: 7,
-    q: "Explain RESTful API design principles",
-    difficulty: "intermediate",
-    topic: "api-design",
-    roles: ["backend-developer", "fullstack-developer", "software-developer"],
-    answer:
-      "RESTful APIs follow principles like: statelessness, resource-based URLs, HTTP methods for CRUD operations (GET, POST, PUT, DELETE), proper status codes, and consistent naming conventions. Resources are represented in JSON or XML.",
-  },
-  {
-    id: 8,
-    q: "What is database indexing?",
-    difficulty: "intermediate",
-    topic: "databases",
-    roles: ["backend-developer", "fullstack-developer", "software-developer"],
-    answer:
-      "Database indexing creates a data structure that improves the speed of data retrieval operations. Indexes are created on columns to quickly locate rows without scanning the entire table, but they add overhead to write operations.",
-  },
-  {
-    id: 9,
-    q: "Design a URL shortener service",
-    difficulty: "advanced",
-    topic: "system-design",
-    roles: ["software-developer", "backend-developer", "fullstack-developer"],
-    answer:
-      "Key components: 1) Hash function for generating short URLs, 2) Database for mapping (consider Redis for caching), 3) Load balancer, 4) Analytics tracking, 5) Expiration mechanism. Consider scalability, collision handling, and redirect performance.",
-  },
-  {
-    id: 10,
-    q: "What is the difference between authentication and authorization?",
-    difficulty: "beginner",
-    topic: "security",
-    roles: ["backend-developer", "fullstack-developer", "software-developer"],
-    answer:
-      "Authentication verifies WHO you are (login credentials), while authorization determines WHAT you can access (permissions). Authentication comes first, then authorization checks if the authenticated user has permission for specific resources or actions.",
-  },
-  {
-    id: 11,
-    q: "Explain the concept of hoisting in JavaScript",
-    difficulty: "intermediate",
-    topic: "javascript",
-    roles: ["software-developer", "web-developer", "frontend-developer", "fullstack-developer"],
-    answer:
-      "Hoisting is JavaScript's behavior of moving declarations to the top of their scope before code execution. Function declarations are fully hoisted, var declarations are hoisted but not initialized (undefined), while let and const are hoisted but not accessible until their declaration (temporal dead zone).",
-  },
-  {
-    id: 12,
-    q: "What are React Hooks rules?",
-    difficulty: "beginner",
-    topic: "react",
-    roles: ["web-developer", "frontend-developer", "fullstack-developer"],
-    answer:
-      "React Hooks have two main rules: 1) Only call Hooks at the top level (not inside loops, conditions, or nested functions), 2) Only call Hooks from React function components or custom Hooks. These rules ensure Hooks are called in the same order on every render.",
-  },
-  {
-    id: 13,
-    q: "Explain database normalization",
-    difficulty: "intermediate",
-    topic: "databases",
-    roles: ["backend-developer", "fullstack-developer", "software-developer"],
-    answer:
-      "Database normalization is the process of organizing data to reduce redundancy and improve data integrity. It involves dividing tables and establishing relationships between them. Common forms include 1NF (atomic values), 2NF (no partial dependencies), 3NF (no transitive dependencies).",
-  },
-  {
-    id: 14,
-    q: "What is middleware in Express.js?",
-    difficulty: "intermediate",
-    topic: "node",
-    roles: ["backend-developer", "fullstack-developer", "web-developer"],
-    answer:
-      "Middleware functions in Express.js have access to the request, response, and next middleware function. They can execute code, modify request/response objects, end the request-response cycle, or call the next middleware. Common uses include authentication, logging, and error handling.",
-  },
-  {
-    id: 15,
-    q: "Explain CSS specificity",
-    difficulty: "intermediate",
-    topic: "css",
-    roles: ["frontend-developer", "web-developer"],
-    answer:
-      "CSS specificity determines which styles are applied when multiple rules target the same element. Calculated as (inline, IDs, classes/attributes/pseudo-classes, elements/pseudo-elements). Inline styles have highest priority, then IDs (100), classes (10), and elements (1). !important overrides specificity.",
-  },
-]
-
 const difficultyColors: Record<string, string> = {
   beginner: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  Easy: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  "Beginner": "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
   intermediate: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  Medium: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  "Intermediate": "bg-amber-500/10 text-amber-600 border-amber-500/20",
   advanced: "bg-rose-500/10 text-rose-600 border-rose-500/20",
+  Hard: "bg-rose-500/10 text-rose-600 border-rose-500/20",
+  "Advanced": "bg-rose-500/10 text-rose-600 border-rose-500/20",
 }
 
-const topicColors: Record<string, string> = {
-  javascript: "text-yellow-600",
-  react: "text-sky-500",
-  mern: "text-emerald-500",
-  "api-design": "text-violet-500",
-  databases: "text-blue-600",
-  "system-design": "text-pink-500",
-  security: "text-rose-600",
-  node: "text-green-600",
-  css: "text-purple-500",
-  dsa: "text-indigo-600",
-}
+const ITEMS_PER_PAGE = 10
 
 export default function RoleInterviewPage() {
   const { roleId } = useParams<{ roleId: string }>()
   const navigate = useNavigate()
   const [expanded, setExpanded] = useState<string[]>([])
   const [search, setSearch] = useState("")
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null)
+  const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const { isPaid, user, token } = useAuth()
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false)
 
   const roleData = roleId ? roles[roleId] : null
 
@@ -255,6 +122,64 @@ export default function RoleInterviewPage() {
   const { data: questionsResponse, isLoading, error } = useQuery(fetchQuestions)
 
   const allQuestions = questionsResponse?.questions || []
+
+  // Filter Logic - match InterviewPage logic
+  const filtered = useMemo(() => {
+    return allQuestions.filter((q: any) => {
+      const matchSearch = search === "" || q.question.toLowerCase().includes(search.toLowerCase())
+      const qDiff = q.difficulty?.toLowerCase()
+      const matchDifficulty = selectedDifficulties.length === 0 ||
+        selectedDifficulties.some(d => d.toLowerCase() === qDiff)
+      return matchSearch && matchDifficulty
+    })
+  }, [allQuestions, search, selectedDifficulties])
+
+  // Pagination Logic
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
+  const paginatedQuestions = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE
+    return filtered.slice(start, start + ITEMS_PER_PAGE)
+  }, [filtered, currentPage])
+
+  // Reset page when filters change
+  useMemo(() => {
+    setCurrentPage(1)
+  }, [search, selectedDifficulties])
+
+  // Set page title
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
+  useEffect(() => {
+    if (roleData) {
+      document.title = `${roleData.name} Interview Prep | ${websiteName}`
+    }
+  }, [roleData, websiteName])
+
+  const handleDownloadPDF = async () => {
+    if (!isPaid && user?.role !== "admin") {
+      setIsSubscriptionModalOpen(true)
+      return
+    }
+
+    if (!roleData || !token) return
+
+    setIsDownloading(true)
+    try {
+      const blob = await interviewAPI.downloadAsPDF(roleData.name, token)
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `${roleData.name.replace(/\s+/g, "_")}_Interview_Questions.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      toast.success("PDF downloaded successfully!")
+    } catch (err: any) {
+      console.error("Download failed:", err)
+      toast.error(err.message || "Failed to download PDF")
+    } finally {
+      setIsDownloading(false)
+    }
+  }
 
   if (!roleData) {
     return (
@@ -280,19 +205,7 @@ export default function RoleInterviewPage() {
     )
   }
 
-  const filteredQuestions = allQuestions.filter((q: any) => {
-    const matchSearch = search === "" || q.question.toLowerCase().includes(search.toLowerCase())
-    const matchDifficulty = selectedDifficulty === null || q.difficulty === selectedDifficulty
-    return matchSearch && matchDifficulty
-  })
 
-  const handleDownloadPDF = () => {
-    if (!roleData) return
-    // Trigger download by opening URL in new window
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"
-    const pdfUrl = `${apiBaseUrl}/interview-questions/pdf/${encodeURIComponent(roleData.name)}`
-    window.open(pdfUrl, "_blank")
-  }
 
   const RoleIcon = roleData.icon
 
@@ -316,287 +229,326 @@ export default function RoleInterviewPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-12 px-4 bg-gradient-to-br from-secondary/30 via-secondary/20 to-background">
-        <div className="max-w-6xl mx-auto">
-          {/* Back Button */}
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="mb-6">
+      {/* Condensed Hero Section */}
+      <section className="pt-28 pb-12 px-4 bg-gradient-to-b from-primary/5 to-background border-b border-border">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-left mb-6">
             <Button
               variant="ghost"
               onClick={() => navigate("/interview")}
-              className="gap-2 hover:bg-secondary"
+              className="gap-2 hover:bg-secondary mb-6"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to All Roles
             </Button>
-          </motion.div>
-
-          {/* Role Header */}
-          <div className="flex flex-col md:flex-row items-start gap-6 mb-8">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5 }}
-              className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${roleData.color} flex items-center justify-center flex-shrink-0 shadow-lg`}
-            >
-              <RoleIcon className="w-10 h-10 text-white" />
-            </motion.div>
-
-            <div className="flex-1">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4"
-              >
-                <Target className="w-3.5 h-3.5" />
-                {isLoading ? "Loading..." : allQuestions.length} Questions Available
-              </motion.div>
-
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="text-3xl md:text-4xl font-bold text-foreground mb-3"
-                style={{ fontFamily: "var(--font-cal-sans)" }}
-              >
-                {roleData.name} Interview Prep
-              </motion.h1>
-
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-lg text-muted-foreground mb-4"
-              >
-                {roleData.longDescription}
-              </motion.p>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="flex flex-wrap gap-2"
-              >
-                <span className="text-sm font-medium text-muted-foreground">Key Topics:</span>
+            <h1 className="text-3xl lg:text-4xl font-bold mb-2 tracking-tight">
+              {roleData.name} Interview Prep
+            </h1>
+            <p className="text-muted-foreground text-lg max-w-2xl">
+              {roleData.longDescription}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 mt-6">
+              <div className="flex flex-wrap gap-2">
+                <span className="text-sm font-medium text-muted-foreground self-center">Key Topics:</span>
                 {roleData.topics.map((topic) => (
                   <Badge key={topic} variant="secondary" className="text-xs">
                     {topic}
                   </Badge>
                 ))}
-              </motion.div>
+              </div>
+              <div className="sm:ml-auto">
+                <Button
+                  onClick={handleDownloadPDF}
+                  disabled={isDownloading}
+                  variant="default"
+                  className="gap-2 shadow-lg shadow-primary/20"
+                >
+                  {isDownloading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    isPaid || user?.role === "admin" ? <Download className="w-4 h-4" /> : <Lock className="w-4 h-4" />
+                  )}
+                  {isDownloading ? "Generating PDF..." : "Download PDF"}
+                </Button>
+              </div>
             </div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-            >
-              <Button size="lg" className="gap-2 whitespace-nowrap" onClick={handleDownloadPDF}>
-                <Download className="w-4 h-4" />
-                Download PDF
-              </Button>
-            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Filters Section */}
-      <section className="py-6 px-4 border-y border-border bg-card/50">
-        <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row gap-4 items-center">
-            {/* Search */}
-            <div className="relative flex-1 w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search questions..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 h-11 bg-background"
-              />
+      <section className="max-w-7xl mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+          {/* Sidebar - Role Info (Desktop) */}
+          <div className="hidden lg:block lg:col-span-1">
+            <div className="bg-card border border-border rounded-xl p-6 sticky top-28 shadow-sm">
+              <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${roleData.color} flex items-center justify-center flex-shrink-0 shadow-lg mb-4`}>
+                <RoleIcon className="w-10 h-10 text-white" />
+              </div>
+              <h3 className="font-semibold text-foreground mb-2">{roleData.name}</h3>
+              <p className="text-sm text-muted-foreground">{roleData.description}</p>
+              <div className="mt-4 pt-4 border-t border-border">
+                <p className="text-sm font-medium text-muted-foreground mb-2">
+                  {isLoading ? "Loading..." : allQuestions.length} Questions Available
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="lg:col-span-3 space-y-6">
+
+            {/* Mobile Role Info */}
+            <div className="lg:hidden flex items-center gap-4 p-4 bg-card border border-border rounded-xl">
+              <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${roleData.color} flex items-center justify-center flex-shrink-0`}>
+                <RoleIcon className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">{roleData.name}</h3>
+                <p className="text-sm text-muted-foreground">{allQuestions.length} Questions</p>
+              </div>
             </div>
 
-            {/* Difficulty Filters */}
-            <div className="flex gap-2">
+            {/* Mobile Filter Toggle & Search Bar Row */}
+            <div className="flex gap-4 items-center lg:hidden mb-4">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" className="gap-2">
+                    <Filter className="w-4 h-4" /> Filters
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[300px] sm:w-[400px] overflow-y-auto">
+                  <div className="py-6">
+                    <h2 className="text-lg font-bold mb-6">Filter Questions</h2>
+                    <div className="space-y-4">
+                      {/* Search */}
+                      <div>
+                        <label className="text-sm font-medium text-foreground mb-3 block">Search</label>
+                        <Input
+                          placeholder="Search questions..."
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                          className="bg-background"
+                        />
+                      </div>
+                      {/* Difficulty Filter */}
+                      <div>
+                        <label className="text-sm font-medium text-foreground mb-3 block">Difficulty</label>
+                        <div className="space-y-2">
+                          <Button
+                            variant={selectedDifficulties.length === 0 ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setSelectedDifficulties([])}
+                            className="w-full justify-start"
+                          >
+                            All Levels
+                          </Button>
+                          {["beginner", "intermediate", "advanced"].map((diff) => (
+                            <Button
+                              key={diff}
+                              variant={selectedDifficulties.includes(diff) ? "default" : "outline"}
+                              size="sm"
+                              onClick={() =>
+                                setSelectedDifficulties(prev =>
+                                  prev.includes(diff) ? prev.filter(d => d !== diff) : [...prev, diff]
+                                )
+                              }
+                              className="w-full justify-start capitalize"
+                            >
+                              {diff}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10 bg-card"
+                />
+              </div>
+            </div>
+
+            {/* Desktop Search Bar (Header of List) */}
+            <div className="hidden lg:flex items-center justify-between mb-2">
+              <div className="relative w-full max-w-md">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search filtered questions..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10 bg-card border-border/80 focus:border-primary transition-all"
+                />
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Showing <b>{filtered.length}</b> results
+              </div>
+            </div>
+
+            {/* Difficulty Filters - Desktop Only */}
+            <div className="hidden lg:flex gap-2 flex-wrap">
               <Button
-                variant={selectedDifficulty === null ? "default" : "outline"}
+                variant={selectedDifficulties.length === 0 ? "default" : "outline"}
                 size="sm"
-                onClick={() => setSelectedDifficulty(null)}
+                onClick={() => setSelectedDifficulties([])}
               >
                 All
               </Button>
               {["beginner", "intermediate", "advanced"].map((diff) => (
                 <Button
                   key={diff}
-                  variant={selectedDifficulty === diff ? "default" : "outline"}
+                  variant={selectedDifficulties.includes(diff) ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setSelectedDifficulty(diff)}
+                  onClick={() =>
+                    setSelectedDifficulties(prev =>
+                      prev.includes(diff) ? prev.filter(d => d !== diff) : [...prev, diff]
+                    )
+                  }
                   className="capitalize"
                 >
                   {diff}
                 </Button>
               ))}
             </div>
-          </div>
 
-          <div className="mt-4 text-sm text-muted-foreground">
-            Showing <span className="font-medium text-foreground">{filteredQuestions.length}</span> of{" "}
-            {allQuestions.length} questions
-            {selectedDifficulty && (
-              <span>
-                {" "}
-                · <span className="capitalize">{selectedDifficulty}</span> level
-              </span>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Questions List */}
-      <section className="py-16 px-4">
-        <div className="max-w-4xl mx-auto space-y-3">
-          {isLoading ? (
-            <div className="text-center py-16">
-              <div className="inline-block">
-                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-              </div>
-            </div>
-          ) : (
-            <>
-              {filteredQuestions.map((q: any, idx: number) => (
-                <motion.div
-                  key={q._id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.02, duration: 0.3 }}
-                  whileHover={{ y: -2 }}
-                  className="rounded-2xl border border-border bg-card overflow-hidden hover:shadow-lg hover:border-primary/20 transition-all duration-300"
-                >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpanded((prev) =>
-                        prev.includes(q._id) ? prev.filter((x) => x !== q._id) : [...prev, q._id]
-                      )
-                    }
-                    className="w-full flex items-start gap-4 p-5 text-left hover:bg-secondary/30 transition-colors duration-200"
+            {/* Questions List */}
+            <div className="space-y-4">
+              {isLoading ? (
+                <div className="text-center py-20 bg-card border border-border rounded-xl border-dashed">
+                  <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+                  <p className="text-muted-foreground">Loading specific questions...</p>
+                </div>
+              ) : paginatedQuestions.length > 0 ? (
+                paginatedQuestions.map((q: any, idx: number) => (
+                  <motion.div
+                    key={q.id || q._id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="group bg-card border border-border hover:border-primary/40 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
                   >
-                    <span className="w-10 h-10 rounded-xl bg-primary/10 text-primary text-sm font-semibold flex items-center justify-center flex-shrink-0">
-                      {idx + 1}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground mb-2 pr-8">{q.question}</h3>
-                      <div className="flex flex-wrap gap-2">
-                        <Badge className={difficultyColors[q.difficulty]}>{q.difficulty}</Badge>
-                        {q.category && (
-                          <Badge variant="outline" className="text-muted-foreground">
-                            {q.category.replace("-", " ")}
-                          </Badge>
-                        )}
+                    <div
+                      className="p-5 cursor-pointer"
+                      onClick={() => {
+                        const qId = q._id || q.id
+                        setExpanded(prev => prev.includes(qId) ? prev.filter(id => id !== qId) : [...prev, qId])
+                      }}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className="hidden sm:flex flex-col items-center gap-1 mt-1">
+                          <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-xs font-bold text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+                            Q{(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}
+                          </div>
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <Badge variant="outline" className={`capitalize font-medium border-0 ${difficultyColors[q.difficulty] || "bg-secondary text-foreground"}`}>
+                              {q.difficulty}
+                            </Badge>
+                            {q.category && (
+                              <Badge variant="secondary" className="capitalize text-xs font-normal text-muted-foreground">
+                                {q.category}
+                              </Badge>
+                            )}
+                          </div>
+                          <h3 className="text-lg font-semibold text-foreground leading-snug group-hover:text-primary transition-colors pr-4">
+                            {q.question}
+                          </h3>
+                        </div>
+
+                        <Button size="icon" variant="ghost" className="shrink-0 text-muted-foreground">
+                          <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${expanded.includes(q._id || q.id) ? "rotate-180" : ""}`} />
+                        </Button>
                       </div>
                     </div>
-                    <motion.div
-                      animate={{ rotate: expanded.includes(q._id) ? 180 : 0 }}
-                      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                      className="flex-shrink-0"
-                    >
-                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                    </motion.div>
-                  </button>
 
-                  <AnimatePresence>
-                    {expanded.includes(q._id) && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                        className="overflow-hidden border-t border-border"
-                      >
-                        <div className="px-4 sm:px-5 pb-5 pt-4 bg-secondary/20">
-                          <div className="sm:pl-14">
-                            <div className="flex gap-3 items-start">
-                              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-500/10 flex items-center justify-center flex-shrink-0">
-                                <Lightbulb className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
-                              </div>
-                              <div className="flex-1 min-w-0 overflow-hidden">
-                                <h4 className="font-semibold text-sm text-foreground mb-2 flex items-center gap-2">
-                                  Answer
-                                </h4>
-                                <div className="text-sm leading-relaxed break-words">
-                                  {q.content ? (
-                                    <InterviewQuestionRenderer content={q.content} />
-                                  ) : (
-                                    <p className="text-muted-foreground">{q.answer}</p>
-                                  )}
+                    <AnimatePresence>
+                      {expanded.includes(q._id || q.id) && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden border-t border-border/50 bg-secondary/10"
+                        >
+                          <div className="px-2 py-4 sm:p-6 sm:pl-16">
+                            <div className="flex gap-4">
+                              <div className="mt-1">
+                                <div className="w-6 h-6 rounded-full bg-green-500/10 flex items-center justify-center">
+                                  <CheckCircle2 className="w-4 h-4 text-green-600" />
                                 </div>
+                              </div>
+                              <div className="flex-1 min-w-0 prose prose-sm dark:prose-invert max-w-none text-muted-foreground w-full break-words">
+                                {q.content ? (
+                                  <InterviewQuestionRenderer content={q.content} />
+                                ) : (
+                                  <p>{q.answer}</p>
+                                )}
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
-              {filteredQuestions.length === 0 && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary flex items-center justify-center">
-                    <Search className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-medium text-foreground mb-2">No questions found</h3>
-                  <p className="text-muted-foreground mb-4">Try adjusting your search or filters.</p>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setSearch("")
-                      setSelectedDifficulty(null)
-                    }}
-                    className="bg-transparent"
-                  >
-                    Clear filters
+                  </motion.div>
+                ))) : (
+                <div className="text-center py-20 bg-card border border-border rounded-xl border-dashed">
+                  <Briefcase className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No matching questions</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto mb-6">
+                    We couldn't find any questions matching your active filters. Try clearing some filters or searching for something else.
+                  </p>
+                  <Button variant="outline" onClick={() => {
+                    setSearch("")
+                    setSelectedDifficulties([])
+                  }}>
+                    Clear All Filters
                   </Button>
-                </motion.div>
+                </div>
               )}
-            </>
-          )}
-        </div>
-      </section>
+            </div>
 
-      {/* CTA Section */}
-      <section className="py-16 px-4 bg-secondary/30 border-t border-border">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${roleData.color} flex items-center justify-center shadow-lg`}>
-              <RoleIcon className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-2xl lg:text-3xl font-bold mb-4" style={{ fontFamily: "var(--font-cal-sans)" }}>
-              Ready for More?
-            </h2>
-            <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Explore other developer roles or get the complete interview preparation package with detailed
-              solutions and company-specific questions.
-            </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <Button size="lg" onClick={() => navigate("/interview")}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Browse All Roles
-              </Button>
-              <Button size="lg" variant="outline" className="bg-transparent" asChild>
-                <Link to="/pricing">View Premium Plans</Link>
-              </Button>
-            </div>
-          </motion.div>
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 pt-8">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <span className="text-sm font-medium px-4">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+
+          </div>
         </div>
       </section>
 
       <Footer />
+      <SubscriptionModal
+        isOpen={isSubscriptionModalOpen}
+        onClose={() => setIsSubscriptionModalOpen(false)}
+      />
     </div>
   )
 }

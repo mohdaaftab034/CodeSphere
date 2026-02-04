@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react"
+import { useCallback, useMemo, useEffect } from "react"
 import { useParams } from "react-router-dom"
 import { Navbar } from "../components/Navbar"
 import { Footer } from "../components/Footer"
@@ -7,6 +7,7 @@ import { notesAPI } from "../lib/api"
 import { useQuery } from "../hooks/useQuery"
 
 export default function NoteDetailPage() {
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
   const { chapterId, topicSlug } = useParams<{ chapterId?: string; topicSlug: string }>()
 
   // Fetch single note from API
@@ -41,17 +42,13 @@ export default function NoteDetailPage() {
     return chapterNotes[currentIndex + 1]
   }, [chapterNotes, topicSlug, note])
 
-  // Fetch related notes in same category
-  const fetchRelated = useCallback(async () => {
-    if (!note?.category) return { notes: [] }
-    return notesAPI.getPublished({ category: note.category })
-  }, [note?.category])
-
-  const { data: relatedResponse } = useQuery(fetchRelated, {
-    enabled: Boolean(note?.category),
-  })
-
-  const relatedNotes = (relatedResponse?.notes || []).filter((n: any) => n.slug !== topicSlug).slice(0, 6)
+  useEffect(() => {
+    if (note?.title) {
+      document.title = `${note.title} | ${websiteName}`
+    } else {
+      document.title = `Note | ${websiteName}`
+    }
+  }, [note?.title, websiteName])
 
   if (isLoading) {
     return (
@@ -83,7 +80,7 @@ export default function NoteDetailPage() {
   return (
     <main className="min-h-screen bg-background">
       <Navbar />
-      <NoteContent note={note} relatedNotes={relatedNotes} nextNote={nextNote} />
+      <NoteContent note={note} nextNote={nextNote} />
       <Footer />
     </main>
   )

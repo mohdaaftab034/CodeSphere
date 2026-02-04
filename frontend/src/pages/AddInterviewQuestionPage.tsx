@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import {
@@ -38,7 +38,12 @@ const topicOptions = [
 type Difficulty = "Beginner" | "Intermediate" | "Advanced"
 
 export default function AddInterviewQuestionPage() {
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
   const navigate = useNavigate()
+
+  useEffect(() => {
+    document.title = `Add Interview Question | ${websiteName}`
+  }, [websiteName])
 
   const [formData, setFormData] = useState({
     title: "",
@@ -100,9 +105,7 @@ export default function AddInterviewQuestionPage() {
         roles: selectedRoles,
         topics: formData.topics,
       }
-      
-      console.log("Sending payload:", payload)
-      
+
       const result = await interviewAPI.create(token, payload)
 
       if (result.success || result.question) {
@@ -209,11 +212,10 @@ export default function AddInterviewQuestionPage() {
                         <button
                           key={level}
                           onClick={() => setFormData({ ...formData, difficulty: level as Difficulty })}
-                          className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                            formData.difficulty === level
-                              ? "bg-primary text-primary-foreground border-primary"
-                              : "bg-muted text-muted-foreground border-border hover:text-foreground"
-                          }`}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium border transition-colors ${formData.difficulty === level
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-muted text-muted-foreground border-border hover:text-foreground"
+                            }`}
                         >
                           {level}
                         </button>
@@ -228,11 +230,10 @@ export default function AddInterviewQuestionPage() {
                         <button
                           key={topic}
                           onClick={() => toggleTopic(topic)}
-                          className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
-                            formData.topics.includes(topic)
-                              ? "bg-foreground text-background border-foreground"
-                              : "bg-muted text-muted-foreground border-border hover:text-foreground"
-                          }`}
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${formData.topics.includes(topic)
+                            ? "bg-foreground text-background border-foreground"
+                            : "bg-muted text-muted-foreground border-border hover:text-foreground"
+                            }`}
                         >
                           {topic}
                         </button>
@@ -270,11 +271,10 @@ export default function AddInterviewQuestionPage() {
                     <button
                       key={role}
                       onClick={() => toggleRole(role)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
-                        selectedRoles.includes(role)
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-muted text-muted-foreground border-border hover:text-foreground"
-                      }`}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${selectedRoles.includes(role)
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-muted text-muted-foreground border-border hover:text-foreground"
+                        }`}
                     >
                       {role}
                     </button>
@@ -307,7 +307,7 @@ export default function AddInterviewQuestionPage() {
                   <span className="text-xs text-muted-foreground">Markdown + Code Blocks</span>
                 </div>
                 <InterviewQuestionEditor
-                  content={formData.content}
+                  initialContent={formData.content}
                   onChange={(newContent) => setFormData({ ...formData, content: newContent })}
                 />
               </motion.div>

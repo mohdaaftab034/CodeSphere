@@ -7,7 +7,6 @@ import AdminLayout from "../components/AdminLayout"
 import { useQuery } from "../hooks/useQuery"
 import { pdfsAPI } from "../lib/api"
 import { useAuth } from "../contexts/AuthContext"
-import { fetchChaptersConfig, ChapterConfig } from "../lib/chapters"
 
 interface PDF {
   id: string
@@ -21,7 +20,13 @@ interface PDF {
 }
 
 export default function PDFManagementPage() {
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
   const { token } = useAuth()
+
+  useEffect(() => {
+    document.title = `Manage PDFs | ${websiteName}`
+  }, [websiteName])
+
   const [dragActive, setDragActive] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [uploadMetadata, setUploadMetadata] = useState({
@@ -34,26 +39,6 @@ export default function PDFManagementPage() {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const [chapters, setChapters] = useState<ChapterConfig[]>([])
-  const [loadingChapters, setLoadingChapters] = useState(true)
-
-  // Fetch chapters on mount
-  useEffect(() => {
-    const loadChapters = async () => {
-      try {
-        const list = await fetchChaptersConfig()
-        setChapters(list)
-      } catch (error) {
-        console.error("Failed to load chapters:", error)
-      } finally {
-        setLoadingChapters(false)
-      }
-    }
-    loadChapters()
-  }, [])
-
-  // Get unique categories from chapters
-  const categories = Array.from(new Set(chapters.filter(ch => !ch.parentId).map(ch => ch.name))).sort()
 
   const fetchPdfs = useCallback(() => pdfsAPI.getAllAdmin(token || ""), [token])
   const { data: pdfsResponse, isLoading, error, refetch } = useQuery(fetchPdfs, {
@@ -272,29 +257,18 @@ export default function PDFManagementPage() {
                       <label className="block text-sm font-medium text-foreground mb-2">
                         Category <span className="text-destructive">*</span>
                       </label>
-                      {loadingChapters ? (
-                        <div className="w-full px-4 py-2 bg-background border border-border rounded-lg text-muted-foreground text-sm">
-                          Loading categories...
-                        </div>
-                      ) : (
-                        <select
-                          value={uploadMetadata.category}
-                          onChange={(e) =>
-                            setUploadMetadata({
-                              ...uploadMetadata,
-                              category: e.target.value,
-                            })
-                          }
-                          className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                        >
-                          <option value="">Select a category</option>
-                          {categories.map((cat) => (
-                            <option key={cat} value={cat}>
-                              {cat}
-                            </option>
-                          ))}
-                        </select>
-                      )}
+                      <input
+                        type="text"
+                        value={uploadMetadata.category}
+                        onChange={(e) =>
+                          setUploadMetadata({
+                            ...uploadMetadata,
+                            category: e.target.value,
+                          })
+                        }
+                        placeholder="e.g., JavaScript, Data Structures & Algorithms, System Design"
+                        className="w-full px-4 py-2 bg-background border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
                     </div>
 
                     <div>

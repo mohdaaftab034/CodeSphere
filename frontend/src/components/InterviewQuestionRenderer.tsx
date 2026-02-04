@@ -67,14 +67,14 @@ export function InterviewQuestionRenderer({ content }: InterviewQuestionRenderer
   }, [content])
 
   return (
-    <div className="space-y-4 w-full overflow-hidden">
+    <div className="space-y-4 w-full">
       {blocks.length === 0 ? (
         <div className="text-muted-foreground text-center py-8">No content to display</div>
       ) : (
         blocks.map((block, idx) => {
           if (block.type === "text") {
             return (
-              <div key={idx} className="prose prose-invert max-w-none break-words overflow-hidden">
+              <div key={idx} className="prose dark:prose-invert max-w-none break-words w-full">
                 <MarkdownRenderer content={block.text} />
               </div>
             )

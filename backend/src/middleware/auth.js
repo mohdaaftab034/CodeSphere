@@ -3,23 +3,33 @@ import User from "../models/User.js"
 
 export const protect = async (req, res, next) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1]
+    const authHeader = req.headers.authorization
+    const token = authHeader?.split(" ")[1]
 
     if (!token) {
+      console.log("❌ [Auth] No token found in Authorization header")
       return res.status(401).json({ message: "Not authenticated" })
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    const user = await User.findById(decoded.id)
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET)
+      const user = await User.findById(decoded.id)
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" })
+      if (!user) {
+        console.log(`❌ [Auth] User not found for ID: ${decoded.id}`)
+        return res.status(404).json({ message: "User not found" })
+      }
+
+      req.user = user
+      next()
+    } catch (jwtError) {
+      console.log(`❌ [Auth] JWT verification failed: ${jwtError.message}`)
+      console.log(`   Expected Secret: ${process.env.JWT_SECRET ? 'SET' : 'MISSING'}`)
+      res.status(401).json({ message: "Invalid token" })
     }
-
-    req.user = user
-    next()
   } catch (error) {
-    res.status(401).json({ message: "Invalid token" })
+    console.error("❌ [Auth] Middleware error:", error)
+    res.status(500).json({ message: "Internal server error" })
   }
 }
 

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Search, Filter, X, ChevronDown, FileText, Code2, Atom, Layers, Briefcase, Zap } from "lucide-react"
 import { Navbar } from "../components/Navbar"
@@ -20,6 +20,12 @@ const categories = [
 const difficulties = ["all", "Beginner", "Intermediate", "Advanced"]
 
 export default function HandwrittenNotesListingPage() {
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
+
+  useEffect(() => {
+    document.title = `Handwritten Notes | ${websiteName}`
+  }, [websiteName])
+
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedDifficulty, setSelectedDifficulty] = useState("all")
@@ -87,7 +93,7 @@ export default function HandwrittenNotesListingPage() {
             className="mb-12"
           >
             <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-4" style={{ fontFamily: "var(--font-cal-sans)" }}>
-              Handwritten Coding Notes
+              Handwritten {websiteName} Notes
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl">
               Premium handwritten PDF notes for interviews, exams, and revision. Clean, organized, and easy to download.
@@ -151,11 +157,10 @@ export default function HandwrittenNotesListingPage() {
                         <button
                           key={diff}
                           onClick={() => setSelectedDifficulty(diff)}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
-                            selectedDifficulty === diff
+                          className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${selectedDifficulty === diff
                               ? "bg-primary text-primary-foreground"
                               : "bg-secondary text-muted-foreground hover:text-foreground"
-                          }`}
+                            }`}
                         >
                           {diff === "all" ? "All Levels" : diff}
                         </button>
@@ -171,11 +176,10 @@ export default function HandwrittenNotesListingPage() {
                         <button
                           key={type}
                           onClick={() => setShowPremium(type as "all" | "free" | "premium")}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
-                            showPremium === type
+                          className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-all ${showPremium === type
                               ? "bg-primary text-primary-foreground"
                               : "bg-secondary text-muted-foreground hover:text-foreground"
-                          }`}
+                            }`}
                         >
                           {type === "all" ? "All Types" : type === "premium" ? "Premium Only" : "Free Only"}
                         </button>
@@ -211,11 +215,10 @@ export default function HandwrittenNotesListingPage() {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                    selectedCategory === cat.id
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === cat.id
                       ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
                       : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/30"
-                  }`}
+                    }`}
                 >
                   <IconComponent className={`w-4 h-4 ${selectedCategory === cat.id ? "" : cat.color}`} />
                   {cat.label}

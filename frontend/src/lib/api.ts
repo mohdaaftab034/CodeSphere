@@ -5,25 +5,21 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000
 // Supports both ImageKit direct URLs and backend stream endpoints
 export const getPDFViewUrl = (pdfUrl: string): string => {
   if (!pdfUrl) return ""
-  
-  console.log("[getPDFViewUrl] Original URL:", pdfUrl)
-  
+
   let transformedUrl = pdfUrl
-  
+
   // If this is a backend stream endpoint, don't modify it
   if (transformedUrl.includes('/api/pdfs/') && transformedUrl.includes('/stream')) {
-    console.log("[getPDFViewUrl] Stream endpoint - passing through without modification")
     return transformedUrl
   }
-  
+
   // ImageKit URLs work directly with proper query parameters
   if (transformedUrl.includes('imagekit.io')) {
     // ImageKit URLs serve PDFs correctly as-is
     // The SDK automatically adds proper Content-Disposition headers
-    console.log("[getPDFViewUrl] ImageKit URL - passing through directly")
     return transformedUrl
   }
-  
+
   // Legacy Cloudinary URL handling (if still needed)
   if (transformedUrl.includes('cloudinary.com')) {
     // Check if URL already has .pdf extension
@@ -35,15 +31,12 @@ export const getPDFViewUrl = (pdfUrl: string): string => {
       } else {
         transformedUrl = `${transformedUrl}.pdf`
       }
-      console.log("[getPDFViewUrl] Added .pdf extension:", transformedUrl)
     }
-    
+
     // Remove any existing fl_inline or fl_attachment transformations (they don't work with raw)
     transformedUrl = transformedUrl.replace('/fl_inline/', '/').replace('/fl_attachment/', '/')
-    console.log("[getPDFViewUrl] Cleaned Cloudinary URL:", transformedUrl)
   }
-  
-  console.log("[getPDFViewUrl] Final transformed URL:", transformedUrl)
+
   return transformedUrl
 }
 
@@ -82,7 +75,23 @@ export const authAPI = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     })
-    if (!response.ok) throw new Error("Login failed")
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || "Login failed")
+    }
+    return response.json()
+  },
+
+  verifyOtp: async (userId: string, otp: string) => {
+    const response = await fetch(`${API_BASE_URL}/auth/verify-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, otp }),
+    })
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || "OTP verification failed")
+    }
     return response.json()
   },
 
@@ -190,8 +199,13 @@ export const notesAPI = {
   },
 
   // User: Download note as PDF
-  downloadAsPDF: async (id: string) => {
-    const response = await fetch(`${API_BASE_URL}/notes/${id}/download-pdf`)
+  downloadAsPDF: async (id: string, token?: string) => {
+    const headers: Record<string, string> = {}
+    if (token) headers["Authorization"] = `Bearer ${token}`
+
+    const response = await fetch(`${API_BASE_URL}/notes/${id}/download-pdf`, {
+      headers
+    })
     if (!response.ok) throw new Error("Failed to generate PDF")
     return response.blob()
   },
@@ -238,6 +252,18 @@ export const interviewAPI = {
     const response = await fetch(`${API_BASE_URL}/interview-questions?${params.toString()}`)
     if (!response.ok) throw new Error("Failed to fetch interview questions")
     return response.json()
+  },
+
+  // User: Download interview questions for a role (Premium)
+  downloadAsPDF: async (role: string, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/interview-questions/pdf/${encodeURIComponent(role)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || "Failed to download PDF")
+    }
+    return response.blob()
   },
 
   // User: Get all questions
@@ -410,9 +436,10 @@ export const pdfsAPI = {
   },
 
   // User: Track download
-  download: async (id: string) => {
+  download: async (id: string, token: string) => {
     const response = await fetch(`${API_BASE_URL}/pdfs/${id}/download`, {
       method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
     })
     if (!response.ok) throw new Error("Failed to track download")
     return response.json()
@@ -502,6 +529,39 @@ export const usersAPI = {
     if (!response.ok) throw new Error("Failed to fetch stats")
     return response.json()
   },
+
+  // Update profile
+  updateProfile: async (token: string, data: { name?: string; avatar?: string }) => {
+    const response = await fetch(`${API_BASE_URL}/users/profile`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) throw new Error("Failed to update profile")
+    return response.json()
+  },
+
+  // Upload avatar
+  uploadAvatar: async (token: string, file: File) => {
+    const formData = new FormData()
+    formData.append("avatar", file)
+
+    const response = await fetch(`${API_BASE_URL}/users/profile/avatar`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    })
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.message || "Failed to upload avatar")
+    }
+    return response.json()
+  },
 }
 
 export const contactAPI = {
@@ -540,3 +600,206 @@ export const contactAPI = {
     return response.json()
   },
 }
+
+// Roadmap API calls
+export const roadmapsAPI = {
+  // Public: Get all roadmaps
+  getAll: async (status?: string) => {
+    const params = new URLSearchParams()
+    if (status) params.append("status", status)
+    const query = params.toString()
+    const response = await fetch(`${API_BASE_URL}/roadmaps${query ? `?${query}` : ""}`)
+    if (!response.ok) throw new Error("Failed to fetch roadmaps")
+    return response.json()
+  },
+
+  // Public: Get roadmap by ID
+  getById: async (id: string) => {
+    const response = await fetch(`${API_BASE_URL}/roadmaps/${id}`)
+    if (!response.ok) throw new Error("Failed to fetch roadmap")
+    return response.json()
+  },
+
+  // Public: Get nodes for a roadmap
+  getNodes: async (roadmapId: string, status?: string) => {
+    const params = new URLSearchParams()
+    if (status) params.append("status", status)
+    const query = params.toString()
+    const response = await fetch(`${API_BASE_URL}/roadmaps/${roadmapId}/nodes${query ? `?${query}` : ""}`)
+    if (!response.ok) throw new Error("Failed to fetch roadmap nodes")
+    return response.json()
+  },
+
+  // Admin: Create roadmap
+  create: async (token: string, data: any) => {
+    const response = await fetch(`${API_BASE_URL}/roadmaps`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) throw new Error("Failed to create roadmap")
+    return response.json()
+  },
+
+  // Admin: Update roadmap
+  update: async (token: string, id: string, data: any) => {
+    const response = await fetch(`${API_BASE_URL}/roadmaps/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) throw new Error("Failed to update roadmap")
+    return response.json()
+  },
+
+  // Admin: Delete roadmap
+  delete: async (token: string, id: string) => {
+    const response = await fetch(`${API_BASE_URL}/roadmaps/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!response.ok) throw new Error("Failed to delete roadmap")
+    return response.json()
+  },
+
+  // Admin: Publish all draft roadmaps
+  publishDrafts: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/roadmaps/publish-drafts`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!response.ok) throw new Error("Failed to publish drafts")
+    return response.json()
+  },
+
+  // Admin: Create node
+  createNode: async (token: string, data: any) => {
+    const response = await fetch(`${API_BASE_URL}/roadmaps/nodes`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) throw new Error("Failed to create node")
+    return response.json()
+  },
+
+  // Admin: Update node
+  updateNode: async (token: string, nodeId: string, data: any) => {
+    const response = await fetch(`${API_BASE_URL}/roadmaps/nodes/${nodeId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) throw new Error("Failed to update node")
+    return response.json()
+  },
+
+  // Admin: Delete node
+  deleteNode: async (token: string, nodeId: string) => {
+    const response = await fetch(`${API_BASE_URL}/roadmaps/nodes/${nodeId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!response.ok) throw new Error("Failed to delete node")
+    return response.json()
+  },
+
+  // Admin: Reorder nodes
+  reorderNodes: async (
+    token: string,
+    roadmapId: string,
+    nodes: Array<{ id: string; parentId: string | null; order: number }>
+  ) => {
+    const response = await fetch(`${API_BASE_URL}/roadmaps/${roadmapId}/nodes/reorder`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ nodes }),
+    })
+    if (!response.ok) throw new Error("Failed to reorder nodes")
+    return response.json()
+  },
+
+  // User: Save roadmap
+  saveRoadmap: async (token: string, roadmapId: string) => {
+    const response = await fetch(`${API_BASE_URL}/users/save-roadmap/${roadmapId}`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!response.ok) throw new Error("Failed to save roadmap")
+    return response.json()
+  },
+
+  // User: Unsave roadmap
+  unsaveRoadmap: async (token: string, roadmapId: string) => {
+    const response = await fetch(`${API_BASE_URL}/users/save-roadmap/${roadmapId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!response.ok) throw new Error("Failed to unsave roadmap")
+    return response.json()
+  },
+
+  // User: Download roadmap as PDF (Premium)
+  downloadAsPDF: async (id: string, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/roadmaps/${id}/download-pdf`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || "Failed to download roadmap PDF")
+    }
+    return response.blob()
+  },
+}
+
+export const subscriptionAPI = {
+  createOrder: async (token: string, planType: "monthly" | "yearly" = "monthly") => {
+    const response = await fetch(`${API_BASE_URL}/subscription/create-order`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ planType }),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: "Failed to create subscription order" }))
+      const errorMessage = error.message || `Failed to create order (${response.status})`
+      throw new Error(errorMessage)
+    }
+    return response.json()
+  },
+
+  verifyPayment: async (token: string, paymentData: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
+    const response = await fetch(`${API_BASE_URL}/subscription/verify-payment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(paymentData),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: "Payment verification failed" }))
+      const errorMessage = error.message || `Verification failed (${response.status})`
+      throw new Error(errorMessage)
+    }
+    return response.json()
+  },
+}
+

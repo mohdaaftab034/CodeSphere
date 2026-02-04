@@ -34,7 +34,12 @@ interface Note {
 }
 
 export default function NotesManagementPage() {
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
   const navigate = useNavigate()
+
+  useEffect(() => {
+    document.title = `Manage Notes | ${websiteName}`
+  }, [websiteName])
   const { token } = useAuth()
   const [searchQuery, setSearchQuery] = useState("")
   const [categoryFilter, setCategoryFilter] = useState<"All" | string>("All")

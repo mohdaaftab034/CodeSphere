@@ -2,6 +2,8 @@ import User from "../models/User.js"
 import Note from "../models/Note.js"
 import InterviewQuestion from "../models/InterviewQuestion.js"
 import HandwrittenPDF from "../models/HandwrittenPDF.js"
+import Roadmap from "../models/Roadmap.js"
+import imagekit from "../config/imagekit.js"
 
 // @desc    Get all users (Admin only)
 // @route   GET /api/users/admin/all
@@ -42,18 +44,18 @@ export const getDashboardStats = async (req, res) => {
     // Calculate growth rate (comparing last 30 days vs previous 30 days)
     const thirtyDaysAgo = new Date()
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-    
+
     const sixtyDaysAgo = new Date()
     sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
 
     const [recentUsers, previousUsers] = await Promise.all([
       User.countDocuments({ createdAt: { $gte: thirtyDaysAgo } }),
-      User.countDocuments({ 
-        createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo } 
+      User.countDocuments({
+        createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo }
       }),
     ])
 
-    const growthRate = previousUsers > 0 
+    const growthRate = previousUsers > 0
       ? Math.round(((recentUsers - previousUsers) / previousUsers) * 100)
       : recentUsers > 0 ? 100 : 0
 
@@ -248,6 +250,69 @@ export const unsavePDF = async (req, res) => {
   }
 }
 
+// @desc    Save a roadmap
+// @route   POST /api/users/save-roadmap/:roadmapId
+// @access  Private
+export const saveRoadmap = async (req, res) => {
+  try {
+    const { roadmapId } = req.params
+    const userId = req.user._id
+
+    const user = await User.findById(userId)
+    if (!user) {
+      return res.status(404).json({ message: "User not found" })
+    }
+
+    // Check if roadmap exists
+    const roadmap = await Roadmap.findById(roadmapId)
+    if (!roadmap) {
+      return res.status(404).json({ message: "Roadmap not found" })
+    }
+
+    // Check if already saved (compare as strings)
+    if (user.savedRoadmaps.some(id => id.toString() === roadmapId)) {
+      return res.status(400).json({ message: "Roadmap already saved" })
+    }
+
+    user.savedRoadmaps.push(roadmapId)
+    await user.save()
+
+    res.status(200).json({
+      success: true,
+      message: "Roadmap saved successfully",
+      savedRoadmaps: user.savedRoadmaps,
+    })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+// @desc    Unsave a roadmap
+// @route   DELETE /api/users/save-roadmap/:roadmapId
+// @access  Private
+export const unsaveRoadmap = async (req, res) => {
+  try {
+    const { roadmapId } = req.params
+    const userId = req.user._id
+
+    const user = await User.findById(userId)
+    if (!user) {
+      return res.status(404).json({ message: "User not found" })
+    }
+
+    user.savedRoadmaps = user.savedRoadmaps.filter(id => id.toString() !== roadmapId)
+    await user.save()
+
+    res.status(200).json({
+      success: true,
+      message: "Roadmap unsaved successfully",
+      savedRoadmaps: user.savedRoadmaps,
+    })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
 // @desc    Get user's saved items for dashboard
 // @route   GET /api/users/dashboard
 // @access  Private
@@ -264,6 +329,10 @@ export const getUserDashboard = async (req, res) => {
         path: 'savedPDFs',
         select: 'title category level description totalPages downloads createdAt'
       })
+      .populate({
+        path: 'savedRoadmaps',
+        select: 'title slug description icon color status createdAt'
+      })
 
     if (!user) {
       return res.status(404).json({ message: "User not found" })
@@ -276,9 +345,11 @@ export const getUserDashboard = async (req, res) => {
           name: user.name,
           email: user.email,
           role: user.role,
+          avatar: user.avatar,
         },
         savedNotes: user.savedNotes,
         savedPDFs: user.savedPDFs,
+        savedRoadmaps: user.savedRoadmaps,
       },
     })
   } catch (error) {
@@ -321,5 +392,73 @@ export const checkSavedItems = async (req, res) => {
     })
   } catch (error) {
     res.status(500).json({ message: error.message })
+  }
+}
+
+// @desc    Update user profile
+// @route   PUT /api/users/profile
+// @access  Private
+export const updateUserProfile = async (req, res) => {
+  try {
+    const userId = req.user._id
+    const { name, avatar } = req.body
+
+    const user = await User.findById(userId)
+    if (!user) {
+      return res.status(404).json({ message: "User not found" })
+    }
+
+    if (name) user.name = name
+    if (avatar) user.avatar = avatar
+
+    const updatedUser = await user.save()
+
+    res.status(200).json({
+      success: true,
+      data: {
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        avatar: updatedUser.avatar,
+      },
+    })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+// @desc    Upload user avatar
+// @route   POST /api/users/profile/avatar
+// @access  Private
+export const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No avatar file uploaded" })
+    }
+
+    // Upload to ImageKit
+    const result = await imagekit.upload({
+      file: req.file.buffer,
+      fileName: `avatar-${req.user._id}-${Date.now()}`,
+      folder: "/avatars",
+    })
+
+    const user = await User.findById(req.user._id)
+    if (user) {
+      user.avatar = result.url
+      await user.save()
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        avatar: result.url,
+        fileId: result.fileId,
+      },
+    })
+  } catch (error) {
+    console.error("Avatar upload error:", error)
+    res.status(500).json({ message: error.message || "Avatar upload failed" })
   }
 }

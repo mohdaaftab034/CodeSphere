@@ -7,6 +7,12 @@ import { Input } from "../components/ui/input"
 import { Label } from "../components/ui/label"
 
 export default function AdminLoginPage() {
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
+
+  useEffect(() => {
+    document.title = `Admin Login | ${websiteName}`
+  }, [websiteName])
+
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -29,7 +35,7 @@ export default function AdminLoginPage() {
     }
 
     // Mock authentication (replace with actual API call)
-    if (email === "admin@codenotes.com" && password === "admin123") {
+    if (email === `admin@${websiteName.toLowerCase()}.com` && password === "admin123") {
       // Store admin session (consider using localStorage or context)
       localStorage.setItem("adminAuthenticated", "true")
       navigate("/admin/dashboard")
@@ -85,7 +91,7 @@ export default function AdminLoginPage() {
             <Input
               id="email"
               type="email"
-              placeholder="admin@codenotes.com"
+              placeholder={`admin@${websiteName.toLowerCase()}.com`}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
@@ -121,7 +127,7 @@ export default function AdminLoginPage() {
         <div className="mt-8 p-4 bg-secondary/50 rounded-lg border border-border">
           <p className="text-xs font-medium text-muted-foreground mb-2">Demo Credentials:</p>
           <p className="text-xs text-muted-foreground">
-            Email: <span className="font-mono text-foreground">admin@codenotes.com</span>
+            Email: <span className="font-mono text-foreground">admin@{websiteName.toLowerCase()}.com</span>
           </p>
           <p className="text-xs text-muted-foreground">
             Password: <span className="font-mono text-foreground">admin123</span>

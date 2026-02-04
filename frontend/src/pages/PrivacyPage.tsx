@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import { Link } from "react-router-dom";
@@ -5,6 +6,12 @@ import { Shield, Lock, Eye, Globe, UserCheck, Mail, Info } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function PrivacyPage() {
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
+
+  useEffect(() => {
+    document.title = `Privacy Policy | ${websiteName}`
+  }, [websiteName])
+
   const sections = [
     { id: "intro", title: "Introduction", icon: <Info className="w-4 h-4" /> },
     {
@@ -92,7 +99,7 @@ export default function PrivacyPage() {
               <div className="prose prose-neutral dark:prose-invert max-w-none text-muted-foreground leading-relaxed">
                 <p>
                   Your privacy matters to us. This Privacy Policy explains what
-                  information <strong>Coding Notes Platform</strong>
+                  information <strong>{import.meta.env.VITE_WEBSITE_NAME}</strong>
                   ("we", "us", or "our") collects, how we use it, and your
                   choices. By using our services, you agree to the practices
                   described here. We built this platform to help developers, not

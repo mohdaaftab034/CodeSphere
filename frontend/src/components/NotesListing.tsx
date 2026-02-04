@@ -152,13 +152,10 @@ export function NotesListing({ initialCategory, initialChapterId }: { initialCat
     try {
       const isSaved = savedNotes.includes(noteId)
       if (isSaved) {
-        console.log("Unsaving note:", noteId)
         await usersAPI.unsaveNote(token, noteId)
         setSavedNotes((prev) => prev.filter((id) => id !== noteId))
       } else {
-        console.log("Saving note:", noteId)
-        const result = await usersAPI.saveNote(token, noteId)
-        console.log("Save result:", result)
+        await usersAPI.saveNote(token, noteId)
         setSavedNotes((prev) => [...prev, noteId])
       }
     } catch (err) {
@@ -229,11 +226,11 @@ export function NotesListing({ initialCategory, initialChapterId }: { initialCat
             {activeChapterTitle ? `${activeChapterTitle} Topics` : (selectedCategory && selectedCategory !== "all" ? `${selectedCategory} Notes` : "All Notes")}
           </h1>
           <p className="text-muted-foreground">
-            {filteredNotes.length === 0 
+            {filteredNotes.length === 0
               ? (activeChapterTitle ? "No topics found in this chapter yet." : "No notes found in this category yet.")
-              : (activeChapterTitle 
-                  ? `Browse ${filteredNotes.length} topics in ${activeChapterTitle}.`
-                  : `Browse ${filteredNotes.length} comprehensive notes${selectedCategory && selectedCategory !== "all" ? ` in ${selectedCategory}` : ""}.`)}
+              : (activeChapterTitle
+                ? `Browse ${filteredNotes.length} topics in ${activeChapterTitle}.`
+                : `Browse ${filteredNotes.length} comprehensive notes${selectedCategory && selectedCategory !== "all" ? ` in ${selectedCategory}` : ""}.`)}
           </p>
         </div>
 
@@ -295,11 +292,10 @@ export function NotesListing({ initialCategory, initialChapterId }: { initialCat
                         <button
                           key={cat.id}
                           onClick={() => setSelectedCategory(cat.id)}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                            selectedCategory === cat.id
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${selectedCategory === cat.id
                               ? "bg-primary text-primary-foreground"
                               : "bg-secondary text-muted-foreground hover:text-foreground"
-                          }`}
+                            }`}
                         >
                           {cat.icon && <cat.icon className={`w-4 h-4 ${selectedCategory === cat.id ? "" : cat.color}`} />}
                           {cat.label}
@@ -316,11 +312,10 @@ export function NotesListing({ initialCategory, initialChapterId }: { initialCat
                         <button
                           key={diff}
                           onClick={() => setSelectedDifficulty(diff)}
-                          className={`px-3 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
-                            selectedDifficulty === diff
+                          className={`px-3 py-2 rounded-lg text-sm font-medium capitalize transition-all ${selectedDifficulty === diff
                               ? "bg-primary text-primary-foreground"
                               : "bg-secondary text-muted-foreground hover:text-foreground"
-                          }`}
+                            }`}
                         >
                           {diff === "all" ? "All Levels" : diff}
                         </button>
@@ -355,11 +350,10 @@ export function NotesListing({ initialCategory, initialChapterId }: { initialCat
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                  selectedCategory === cat.id
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${selectedCategory === cat.id
                     ? "bg-primary text-primary-foreground"
                     : "bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/30"
-                }`}
+                  }`}
               >
                 {cat.icon && <cat.icon className={`w-4 h-4 ${selectedCategory === cat.id ? "" : cat.color}`} />}
                 {cat.label}
@@ -388,19 +382,19 @@ export function NotesListing({ initialCategory, initialChapterId }: { initialCat
         </div>
 
         {/* Notes Grid by Chapter */}
-            {isLoading || isChapterLoading ? (
+        {isLoading || isChapterLoading ? (
           <div className="text-center py-16">
             <div className="inline-block">
               <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
             </div>
           </div>
-            ) : allNotes.length === 0 ? (
+        ) : allNotes.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary flex items-center justify-center">
               <BookOpen className="w-8 h-8 text-muted-foreground" />
             </div>
-                <h3 className="text-lg font-medium text-foreground mb-2">{activeChapterTitle ? "Topics not available" : "Notes not available"}</h3>
-                <p className="text-muted-foreground mb-4">{activeChapterTitle ? "No topics have been added to this chapter yet." : "No notes have been uploaded yet. Please check back later."}</p>
+            <h3 className="text-lg font-medium text-foreground mb-2">{activeChapterTitle ? "Topics not available" : "Notes not available"}</h3>
+            <p className="text-muted-foreground mb-4">{activeChapterTitle ? "No topics have been added to this chapter yet." : "No notes have been uploaded yet. Please check back later."}</p>
           </div>
         ) : Object.keys(groupedNotes).length > 0 ? (
           <div className="space-y-12">
@@ -418,9 +412,9 @@ export function NotesListing({ initialCategory, initialChapterId }: { initialCat
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: index * 0.05 }}
                     >
-                      <NoteCard 
-                        note={note} 
-                        isSaved={savedNotes.includes(note._id)} 
+                      <NoteCard
+                        note={note}
+                        isSaved={savedNotes.includes(note._id)}
                         onToggleSave={() => toggleSave(note._id)}
                         chapterId={activeChapterId || undefined}
                       />
@@ -463,15 +457,15 @@ export function NotesListing({ initialCategory, initialChapterId }: { initialCat
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            
+
             <div className="flex gap-1">
               {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
                 // Show first page, last page, current page, and pages around current
-                const showPage = 
-                  page === 1 || 
-                  page === totalPages || 
+                const showPage =
+                  page === 1 ||
+                  page === totalPages ||
                   (page >= currentPage - 1 && page <= currentPage + 1)
-                
+
                 // Show ellipsis
                 const showEllipsisBefore = page === currentPage - 2 && currentPage > 3
                 const showEllipsisAfter = page === currentPage + 2 && currentPage < totalPages - 2
@@ -576,7 +570,7 @@ function NoteCard({ note, isSaved, onToggleSave, chapterId }: NoteCardProps) {
   const gradient = chapterGradient || categoryGradients[note.category] || "from-gray-500/80 to-gray-600/80";
 
   return (
-    <motion.div 
+    <motion.div
       whileHover={{ y: -4, scale: 1.01 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
       className="group relative h-full"
@@ -588,9 +582,9 @@ function NoteCard({ note, isSaved, onToggleSave, chapterId }: NoteCardProps) {
         <div className="absolute top-0 right-0 w-24 h-24 overflow-hidden pointer-events-none">
           <div className={`absolute -top-12 -right-12 w-24 h-24 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-20 rotate-45 transition-all duration-500 group-hover:scale-150`} />
           <svg className="absolute top-0 right-0 w-16 h-16" viewBox="0 0 64 64">
-            <path 
-              d="M64 0 L64 64 L0 64" 
-              fill="none" 
+            <path
+              d="M64 0 L64 64 L0 64"
+              fill="none"
               stroke="currentColor"
               strokeWidth="2"
               className="text-primary/0 group-hover:text-primary/30 transition-colors duration-300"
@@ -605,11 +599,10 @@ function NoteCard({ note, isSaved, onToggleSave, chapterId }: NoteCardProps) {
             e.stopPropagation()
             onToggleSave()
           }}
-          className={`absolute top-4 right-4 z-10 p-2.5 rounded-xl backdrop-blur-sm transition-all duration-300 ${
-            isSaved 
-              ? "bg-primary/15 text-primary shadow-sm" 
+          className={`absolute top-4 right-4 z-10 p-2.5 rounded-xl backdrop-blur-sm transition-all duration-300 ${isSaved
+              ? "bg-primary/15 text-primary shadow-sm"
               : "bg-card/80 text-muted-foreground hover:text-primary hover:bg-primary/10 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0"
-          }`}
+            }`}
           aria-label={isSaved ? "Remove bookmark" : "Add bookmark"}
         >
           {isSaved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
@@ -638,10 +631,9 @@ function NoteCard({ note, isSaved, onToggleSave, chapterId }: NoteCardProps) {
               {note.category}
             </span>
             <span className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full border ${difficultyColors[note.difficulty] || "bg-gray-100 text-gray-700 border-gray-200"}`}>
-              <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                note.difficulty === "Beginner" ? "bg-emerald-500" :
-                note.difficulty === "Intermediate" ? "bg-amber-500" : "bg-rose-500"
-              }`} />
+              <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${note.difficulty === "Beginner" ? "bg-emerald-500" :
+                  note.difficulty === "Intermediate" ? "bg-amber-500" : "bg-rose-500"
+                }`} />
               {note.difficulty}
             </span>
           </div>

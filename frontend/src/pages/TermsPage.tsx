@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
 import { Link } from "react-router-dom";
@@ -16,6 +17,12 @@ import {
 import { motion } from "framer-motion";
 
 export default function TermsPage() {
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
+
+  useEffect(() => {
+    document.title = `Terms & Conditions | ${websiteName}`
+  }, [websiteName])
+
   const sections = [
     {
       id: "acceptance",
@@ -133,7 +140,7 @@ export default function TermsPage() {
                 <h2 className="text-2xl font-bold">Acceptance of Terms</h2>
               </div>
               <p className="text-muted-foreground leading-relaxed">
-                By accessing or using the <strong>Coding Notes Platform</strong>{" "}
+                By accessing or using the <strong>{import.meta.env.VITE_WEBSITE_NAME}</strong>{" "}
                 (the “Service”), you agree to be bound by these Terms &
                 Conditions and our Privacy Policy. If you do not agree to these
                 terms, please do not access or use our Service.
@@ -200,7 +207,7 @@ export default function TermsPage() {
                 <h2 className="text-2xl font-bold">Limitation of Liability</h2>
               </div>
               <p className="text-muted-foreground leading-relaxed italic border-l-4 border-border pl-6">
-                "To the fullest extent permitted by law, Coding Notes Platform
+                "To the fullest extent permitted by law, {import.meta.env.VITE_WEBSITE_NAME}
                 will not be liable for any indirect, incidental, special, or
                 consequential damages resulting from your use of the platform or
                 reliance on the notes provided."

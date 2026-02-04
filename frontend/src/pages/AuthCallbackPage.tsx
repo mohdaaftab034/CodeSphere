@@ -27,23 +27,22 @@ export default function AuthCallbackPage() {
       if (token && userStr) {
         try {
           const user = JSON.parse(decodeURIComponent(userStr))
-          
-          console.log("✅ Received from OAuth callback:", { token: token.substring(0, 20) + "...", user })
-          
+
+          // Ensure user has a role, default to "user" if missing
+          const userWithRole = {
+            ...user,
+            role: user.role || "user"
+          }
+
           // Call login to update the context state AND localStorage
-          login(token, user)
-          
-          console.log("✅ Auth context and localStorage updated")
-          
-          // Redirect to appropriate page
-          setTimeout(() => {
-            // Navigate based on user role
-            if (user.role === "admin") {
-              navigate("/admin/dashboard")
-            } else {
-              navigate("/")
-            }
-          }, 0)
+          login(token, userWithRole)
+
+          // Refresh and redirect to appropriate page
+          if (userWithRole.role === "admin") {
+            window.location.href = "/admin/dashboard";
+          } else {
+            window.location.href = "/";
+          }
         } catch (err) {
           console.error("❌ Error parsing user data:", err)
           setError("Failed to complete authentication")

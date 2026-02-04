@@ -6,9 +6,10 @@ import { useQuery } from "../hooks/useQuery"
 import { getChapterById, getSubChapters } from "../lib/chapters"
 import { motion } from "framer-motion"
 import { Code2, Atom, Layers, Briefcase, ArrowRight, BookOpen } from "lucide-react"
-import { useCallback, useMemo } from "react"
+import { useCallback, useMemo, useEffect } from "react"
 
 export default function ChapterTopicsPage() {
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
   const { chapterId } = useParams()
 
   // Fetch chapter info
@@ -30,6 +31,14 @@ export default function ChapterTopicsPage() {
   const { data: subChapters = [], isLoading: subChaptersLoading } = useQuery(fetchSubChapters, {
     enabled: !!chapterId,
   })
+
+  useEffect(() => {
+    if (chapter?.title) {
+      document.title = `${chapter.title} | ${websiteName}`
+    } else {
+      document.title = `Chapter Topics | ${websiteName}`
+    }
+  }, [chapter?.title, websiteName])
 
   // Icon map
   const iconMap: Record<string, any> = {

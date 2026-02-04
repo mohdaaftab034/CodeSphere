@@ -29,6 +29,7 @@ const difficultyColors: Record<string, string> = {
 };
 
 export default function HandwrittenNotePDFPreviewPage() {
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { token } = useAuth();
@@ -36,6 +37,14 @@ export default function HandwrittenNotePDFPreviewPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [downloadCount, setDownloadCount] = useState<number>(0);
+
+  useEffect(() => {
+    if (note?.title) {
+      document.title = `${note.title} | ${websiteName}`
+    } else {
+      document.title = `PDF Preview | ${websiteName}`
+    }
+  }, [note?.title, websiteName])
 
   useEffect(() => {
     const fetchNote = async () => {
@@ -71,6 +80,22 @@ export default function HandwrittenNotePDFPreviewPage() {
     } catch (err) {
       alert("Action failed");
     }
+  };
+
+  const handleDownload = () => {
+    if (!note?.pdfUrl) {
+      alert("PDF URL not available");
+      return;
+    }
+
+    // Create a temporary anchor element to trigger download
+    const link = document.createElement("a");
+    link.href = note.pdfUrl;
+    link.download = `${note.title || "document"}.pdf`;
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (isLoading)
@@ -238,7 +263,10 @@ export default function HandwrittenNotePDFPreviewPage() {
                       Unlock Now
                     </Button>
                   ) : (
-                    <Button className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg shadow-xl shadow-primary/10 transition-all active:scale-[0.98]">
+                    <Button 
+                      onClick={handleDownload}
+                      className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg shadow-xl shadow-primary/10 transition-all active:scale-[0.98]"
+                    >
                       <Download className="w-5 h-5 mr-2" />
                       Download PDF
                     </Button>

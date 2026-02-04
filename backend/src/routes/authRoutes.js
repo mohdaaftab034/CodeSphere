@@ -1,5 +1,5 @@
 import express from "express"
-import { login, getProfile, googleCallback } from "../controllers/authController.js"
+import { login, getProfile, googleCallback, verifyOtp } from "../controllers/authController.js"
 import { protect } from "../middleware/auth.js"
 import passport from "passport"
 
@@ -7,6 +7,9 @@ const router = express.Router()
 
 // Traditional login
 router.post("/login", login)
+
+// OTP verification
+router.post("/verify-otp", verifyOtp)
  
 // Get user profile
 router.get("/profile", protect, getProfile)

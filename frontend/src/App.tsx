@@ -1,14 +1,19 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
-import { useAuth } from "./contexts/AuthContext"
+import { useAuth, AuthProvider } from "./contexts/AuthContext"
 import { Loader2 } from "lucide-react"
 import HomePage from "./pages/HomePage.tsx"
 import NotesPage from "./pages/NotesPage.tsx"
 import InterviewPage from "./pages/InterviewPage.tsx"
-import PricingPage from "./pages/PricingPage.tsx"
+import RoadmapDetailPage from "./pages/RoadmapDetailPage.tsx"
+import RoadmapListingPage from "./pages/RoadmapListingPage.tsx"
+import SubscriptionPage from "./pages/SubscriptionPage.tsx"
+
 import ContactPage from "./pages/ContactPage.tsx"
+import AboutUsPage from "./pages/AboutUsPage.tsx"
 import LoginPage from "./pages/LoginPage.tsx"
 import AuthCallbackPage from "./pages/AuthCallbackPage.tsx"
 import DashboardPage from "./pages/DashboardPage.tsx"
+import RoadmapAdminPage from "./pages/RoadmapAdminPage.tsx"
 import NoteDetailPage from "./pages/NoteDetailPage.tsx"
 import HandwrittenNotesListingPage from "./pages/HandwrittenNotesListingPage.tsx"
 import HandwrittenNotePDFPreviewPage from "./pages/HandwrittenNotePDFPreviewPage.tsx"
@@ -19,6 +24,7 @@ import PrivacyPage from "./pages/PrivacyPage.tsx"
 import TermsPage from "./pages/TermsPage.tsx"
 import FeedbackPage from "./pages/FeedbackPage.tsx"
 import AdminDashboardPage from "./pages/AdminDashboardPage.tsx"
+import SingleQuestionPage from "./pages/SingleQuestionPage.tsx"
 import UserManagementPage from "./pages/UserManagementPage.tsx"
 import NotesManagementPage from "./pages/NotesManagementPage.tsx"
 import NoteEditorPage from "./pages/NoteEditorPage.tsx"
@@ -28,9 +34,9 @@ import PDFManagementPage from "./pages/PDFManagementPage.tsx"
 import PagesManagementPage from "./pages/PagesManagementPage.tsx"
 import SettingsPage from "./pages/SettingsPage.tsx"
 import UserProfilePage from "./pages/UserProfilePage.tsx"
+import { Toaster } from "react-hot-toast"
 import "./index.css"
 import { ScrollToTop } from "./components/ScrollToTop.tsx"
-import { AuthProvider } from "./contexts/AuthContext.tsx"
 
 // Component that wraps routes and waits for auth to load
 function AppRoutes() {
@@ -56,8 +62,13 @@ function AppRoutes() {
         <Route path="/notes/:chapterId/:topicSlug" element={<NoteDetailPage />} />
         <Route path="/interview" element={<InterviewPage />} />
         <Route path="/interview/:roleId" element={<RoleInterviewPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/interview/question/:id" element={<SingleQuestionPage />} />
+
+        <Route path="/roadmap" element={<RoadmapListingPage />} />
+        <Route path="/roadmap/:id" element={<RoadmapDetailPage />} />
+        <Route path="/subscribe" element={<SubscriptionPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/about" element={<AboutUsPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/profile" element={<UserProfilePage />} />
@@ -77,6 +88,7 @@ function AppRoutes() {
         <Route path="/admin/interviews/new" element={<AddInterviewQuestionPage />} />
         <Route path="/admin/interviews" element={<InterviewManagementPage />} />
         <Route path="/admin/pdfs" element={<PDFManagementPage />} />
+        <Route path="/admin/roadmaps" element={<RoadmapAdminPage />} />
         <Route path="/admin/pages" element={<PagesManagementPage />} />
         <Route path="/admin/settings" element={<SettingsPage />} />
       </Routes>
@@ -89,8 +101,10 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <AppRoutes />
+        <Toaster position="top-center" reverseOrder={false} />
       </AuthProvider>
     </BrowserRouter>
   )
 }
+
 export default App

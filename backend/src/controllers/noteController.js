@@ -2,8 +2,11 @@ import Note from "../models/Note.js"
 import Chapter from "../models/Chapter.js"
 import { validateNote } from "../middleware/validation.js"
 import { createSlug } from "../utils/helpers.js"
-import PDFDocument from "pdfkit"
+import { createBasePDF, renderMarkdownToPDF, finalizePDF } from "../utils/pdfHelpers.js"
 import { sendNotesUploadNotification } from "../utils/notificationService.js"
+
+const frontendUrl = process.env.FRONTEND_URL || ""
+const frontendBaseUrl = frontendUrl.replace(/\/$/, "")
 
 // Admin: Create note
 export const createNote = async (req, res) => {
@@ -45,7 +48,7 @@ export const createNote = async (req, res) => {
 
     // Send notification email to all users with the note URL
     try {
-      const noteUrl = `https://codenotes.dev/notes/${note.slug}`
+      const noteUrl = `${frontendBaseUrl}/notes/${note.slug}`
       await sendNotesUploadNotification(note, noteUrl)
     } catch (notificationError) {
       console.error("⚠️ Failed to send notes upload notification:", notificationError.message)
@@ -197,237 +200,6 @@ export const getAllNotes = async (req, res) => {
 }
 
 // User: Download note as PDF
-// Helper function to render markdown content to PDF with proper formatting
-const renderMarkdownToPDF = (doc, markdown) => {
-  const lines = markdown.split("\n")
-  let inCodeBlock = false
-  let codeBlockContent = []
-  let codeLanguage = ""
-  const baseTextOptions = { width: 500, lineGap: 4 }
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
-
-    // Handle code blocks
-    if (line.trim().startsWith("```")) {
-      if (inCodeBlock) {
-        // End of code block - render accumulated content
-        inCodeBlock = false
-        
-        // Render code block with background
-        doc.fontSize(9).font("Courier").fillColor("#000000")
-        
-        const startY = doc.y
-        const codeBlockHeight = codeBlockContent.length * 13 + 12
-        
-        // Draw background rectangle
-        doc.rect(45, startY, 510, codeBlockHeight).fillAndStroke("#f8f8f8", "#d0d0d0")
-        
-        // Draw code lines
-        doc.y = startY + 6
-        codeBlockContent.forEach((codeLine) => {
-          doc.fontSize(9).font("Courier").fillColor("#333333")
-          doc.text(codeLine || " ", { width: 480, lineBreak: false })
-          doc.moveDown(0.4)
-        })
-        
-        doc.moveDown(0.5)
-        doc.fillColor("#000000")
-        doc.font("Helvetica")
-        codeBlockContent = []
-        codeLanguage = ""
-      } else {
-        // Start of code block
-        inCodeBlock = true
-        codeLanguage = line.trim().substring(3).trim()
-      }
-      continue
-    }
-
-    if (inCodeBlock) {
-      codeBlockContent.push(line)
-      continue
-    }
-
-    // Skip empty lines but add spacing
-    if (!line.trim()) {
-      doc.moveDown(0.6)
-      continue
-    }
-
-    // H1 headings (# )
-    if (/^# /.test(line)) {
-      const headingText = line.replace(/^#+\s+/, "")
-      doc.fontSize(20).font("Helvetica-Bold").fillColor("#1a1a1a")
-      doc.text(headingText, { ...baseTextOptions })
-      doc.moveDown(0.4)
-      doc.strokeColor("#cccccc").lineWidth(1).moveTo(45, doc.y).lineTo(555, doc.y).stroke()
-      doc.moveDown(0.8)
-      continue
-    }
-
-    // H2 headings (## )
-    if (/^## /.test(line)) {
-      const headingText = line.replace(/^#+\s+/, "")
-      doc.fontSize(16).font("Helvetica-Bold").fillColor("#333333")
-      doc.text(headingText, { ...baseTextOptions })
-      doc.moveDown(0.5)
-      continue
-    }
-
-    // H3 headings (### )
-    if (/^### /.test(line)) {
-      const headingText = line.replace(/^#+\s+/, "")
-      doc.fontSize(13).font("Helvetica-Bold").fillColor("#555555")
-      doc.text(headingText, { ...baseTextOptions })
-      doc.moveDown(0.4)
-      continue
-    }
-
-    // H4 headings (#### )
-    if (/^#### /.test(line)) {
-      const headingText = line.replace(/^#+\s+/, "")
-      doc.fontSize(12).font("Helvetica-Bold").fillColor("#666666")
-      doc.text(headingText, { ...baseTextOptions })
-      doc.moveDown(0.4)
-      continue
-    }
-
-    // Block quotes
-    if (/^>\s/.test(line)) {
-      doc.fontSize(10).font("Helvetica-Oblique").fillColor("#666666")
-      const quoteText = line.replace(/^>\s+/, "")
-      doc.rect(45, doc.y, 510, 1).fill("#bbbbbb")
-      doc.moveDown(0.2)
-      doc.text(quoteText, { width: 480, indent: 20, lineGap: 4 })
-      doc.moveDown(0.6)
-      continue
-    }
-
-    // Unordered lists (-, *, +)
-    if (/^\s*[-*+]\s/.test(line)) {
-      const indent = line.match(/^\s*/)[0].length
-      const listItem = line.replace(/^\s*[-*+]\s+/, "")
-      doc.fontSize(11).font("Helvetica").fillColor("#000000")
-      doc.text("• " + listItem, { width: 480, indent: 20 + indent, lineGap: 4 })
-      doc.moveDown(0.3)
-      continue
-    }
-
-    // Ordered lists
-    if (/^\s*\d+\.\s/.test(line)) {
-      const match = line.match(/^(\s*)(\d+)\.\s+(.*)/)
-      if (match) {
-        const indent = match[1].length
-        const num = match[2]
-        const text = match[3]
-        doc.fontSize(11).font("Helvetica").fillColor("#000000")
-        doc.text(`${num}. ${text}`, { width: 480, indent: 20 + indent, lineGap: 4 })
-        doc.moveDown(0.3)
-        continue
-      }
-    }
-
-    // Regular paragraph with inline formatting
-    doc.fontSize(11).font("Helvetica").fillColor("#000000")
-    renderInlineMarkdown(doc, line)
-    doc.moveDown(0.6)
-  }
-}
-
-// Helper to render inline markdown with proper formatting
-const renderInlineMarkdown = (doc, text) => {
-  const parts = []
-  let current = ""
-  let i = 0
-
-  while (i < text.length) {
-    // Bold **text**
-    if (text.startsWith("**", i)) {
-      const end = text.indexOf("**", i + 2)
-      if (end !== -1) {
-        if (current) parts.push({ type: "normal", text: current })
-        parts.push({ type: "bold", text: text.substring(i + 2, end) })
-        current = ""
-        i = end + 2
-        continue
-      }
-    }
-
-    // Italic *text*
-    if (text[i] === "*") {
-      const end = text.indexOf("*", i + 1)
-      if (end !== -1) {
-        if (current) parts.push({ type: "normal", text: current })
-        parts.push({ type: "italic", text: text.substring(i + 1, end) })
-        current = ""
-        i = end + 1
-        continue
-      }
-    }
-
-    // Inline code `code`
-    if (text[i] === "`") {
-      const end = text.indexOf("`", i + 1)
-      if (end !== -1) {
-        if (current) parts.push({ type: "normal", text: current })
-        parts.push({ type: "code", text: text.substring(i + 1, end) })
-        current = ""
-        i = end + 1
-        continue
-      }
-    }
-
-    // Links [text](url)
-    if (text[i] === "[") {
-      const closeBracket = text.indexOf("]", i + 1)
-      const openParen = text.indexOf("(", closeBracket + 1)
-      const closeParen = text.indexOf(")", openParen + 1)
-      if (closeBracket !== -1 && openParen === closeBracket + 1 && closeParen !== -1) {
-        if (current) parts.push({ type: "normal", text: current })
-        const linkText = text.substring(i + 1, closeBracket)
-        const url = text.substring(openParen + 1, closeParen)
-        parts.push({ type: "link", text: linkText, url })
-        current = ""
-        i = closeParen + 1
-        continue
-      }
-    }
-
-    current += text[i]
-    i += 1
-  }
-
-  if (current) parts.push({ type: "normal", text: current })
-
-  // Render all parts
-  parts.forEach((part) => {
-    switch (part.type) {
-      case "bold":
-        doc.font("Helvetica-Bold").text(part.text, { continued: true, lineGap: 4 })
-        doc.font("Helvetica")
-        break
-      case "italic":
-        doc.font("Helvetica-Oblique").text(part.text, { continued: true, lineGap: 4 })
-        doc.font("Helvetica")
-        break
-      case "code":
-        doc.fillColor("#d63384").font("Courier").text(part.text, { continued: true, lineGap: 4 })
-        doc.fillColor("#000000").font("Helvetica")
-        break
-      case "link":
-        doc.fillColor("#0066cc").text(part.text, { continued: true, lineGap: 4 })
-        doc.fillColor("#000000")
-        break
-      case "normal":
-      default:
-        doc.text(part.text, { continued: true, lineGap: 4 })
-    }
-  })
-
-  doc.text("", { lineGap: 4 }) // End the line
-}
-
 export const downloadNoteAsPDF = async (req, res) => {
   try {
     const { id } = req.params
@@ -437,57 +209,41 @@ export const downloadNoteAsPDF = async (req, res) => {
       return res.status(404).json({ message: "Note not found" })
     }
 
-    // Create PDF document
-    const doc = new PDFDocument({
-      bufferPages: true,
-      margin: 50,
-    })
+    // Create PDF document using helper
+    const doc = createBasePDF(note.title)
 
     // Set response headers
     res.setHeader("Content-Type", "application/pdf")
     res.setHeader("Content-Disposition", `attachment; filename="${note.title.replace(/[^a-z0-9]/gi, "_").toLowerCase()}.pdf"`)
 
-    // Propagate stream errors cleanly
-    doc.on("error", (err) => {
-      console.error("PDF stream error:", err)
-      if (!res.headersSent) {
-        res.status(500).json({ message: "Failed to generate PDF", error: err.message })
-      } else {
-        res.end()
-      }
-    })
-
     // Pipe PDF to response
     doc.pipe(res)
 
-    // Add title
-    doc.fontSize(24).font("Helvetica-Bold").fillColor("#000000").text(note.title, { align: "left" })
-    doc.moveDown(0.5)
+    // Header Metadata
+    doc.fontSize(28).font("Helvetica-Bold").fillColor("#0066cc").text(note.title, { align: "left" })
+    doc.moveDown(0.2)
 
-    // Add metadata
-    doc.fontSize(10).font("Helvetica").fillColor("#666666")
-    doc.text(`Category: ${note.category} | Difficulty: ${note.difficulty} | Chapter: ${note.chapter}`)
-    doc.moveDown(0.3)
-    doc.text(`Author: ${note.author || "Admin"} | Reading Time: ${note.readingTime || "5 min"}`)
+    doc.fontSize(10).font("Helvetica-Bold").fillColor("#444444")
+    doc.text(`Category: `, { continued: true }).font("Helvetica").text(note.category, { continued: true })
+    doc.font("Helvetica-Bold").text(`  |  Difficulty: `, { continued: true }).font("Helvetica").text(note.difficulty, { continued: true })
+    doc.font("Helvetica-Bold").text(`  |  Chapter: `, { continued: true }).font("Helvetica").text(note.chapter)
+
+    doc.fontSize(10).font("Helvetica-Bold").text(`Author: `, { continued: true }).font("Helvetica").text(note.author || "Education Team", { continued: true })
+    doc.font("Helvetica-Bold").text(`  |  Reading Time: `, { continued: true }).font("Helvetica").text(note.readingTime || "5 min")
     doc.moveDown(1)
 
     // Add separator line
-    doc.strokeColor("#cccccc").lineWidth(1).moveTo(50, doc.y).lineTo(550, doc.y).stroke()
-    doc.moveDown(0.8)
+    doc.strokeColor("#e0e0e0").lineWidth(1).moveTo(50, doc.y).lineTo(545, doc.y).stroke()
+    doc.moveDown(1.5)
 
-    // Render markdown content with proper formatting
+    // Render markdown content using helper
     const safeContent = typeof note.content === "string" ? note.content : ""
     doc.fillColor("#000000")
     renderMarkdownToPDF(doc, safeContent)
 
-    // Add footer
-    doc.moveDown(1)
-    doc.fontSize(9).fillColor("#999999")
-    doc.text(`Generated on ${new Date().toLocaleDateString()} | ${note.title}`, {
-      align: "center",
-    })
+    // Finalize with numbering and footer using helper
+    finalizePDF(doc, note.title)
 
-    // Finalize PDF
     doc.end()
   } catch (error) {
     console.error("PDF generation error:", error)

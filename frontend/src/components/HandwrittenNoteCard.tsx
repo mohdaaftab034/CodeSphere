@@ -33,7 +33,8 @@ const categoryGradients: Record<string, string> = {
 
 export function HandwrittenNoteCard({ note, isSaved, onToggleSave }: HandwrittenNoteCardProps) {
   const gradient = categoryGradients[note.category] || "from-gray-500 to-gray-600"
-  const subject = note.subject || note.category || "Coding Notes"
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
+  const subject = note.subject || note.category || websiteName
   const totalPages = note.totalPages || note.pages || 0
   const downloadCount = note.downloadCount || note.views || 0
   return (

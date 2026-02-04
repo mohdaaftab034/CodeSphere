@@ -12,14 +12,20 @@ import {
   BookOpen,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { contactAPI } from "../lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 
 export default function FeedbackPage() {
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
   const { user } = useAuth();
+
+  useEffect(() => {
+    document.title = `Feedback | ${websiteName}`
+  }, [websiteName])
+
   const isAuthenticated = !!user;
   const [feedbackType, setFeedbackType] = useState("General Feedback");
   const [subject, setSubject] = useState("");
@@ -93,7 +99,7 @@ export default function FeedbackPage() {
               Share Your Thoughts
             </h1>
             <p className="text-muted-foreground text-lg max-w-lg mx-auto">
-              Your feedback shapes the future of CodeNotes. Tell us what's
+              Your feedback shapes the future of {import.meta.env.VITE_WEBSITE_NAME}. Tell us what's
               working and what we can do better.
             </p>
           </motion.div>

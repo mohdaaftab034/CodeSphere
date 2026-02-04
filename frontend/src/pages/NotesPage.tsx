@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { Navbar } from "../components/Navbar"
 import { Footer } from "../components/Footer"
 import { CategoryCards } from "../components/CategoryCards"
@@ -5,8 +6,13 @@ import { NotesListing } from "../components/NotesListing"
 import { useSearchParams } from "react-router-dom"
 
 export default function NotesPage() {
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
   const [searchParams] = useSearchParams()
   const chapterParam = searchParams.get("chapter")
+
+  useEffect(() => {
+    document.title = `All Notes | ${websiteName}`
+  }, [websiteName])
 
   // Using chapters-first flow; show chapter topics when a chapter slug is provided
   const validChapterSlug = chapterParam || null

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Plus, Edit, Trash2, ChevronDown, ChevronUp, Briefcase, Tag } from "lucide-react"
@@ -28,7 +28,12 @@ const roles = [
 ]
 
 export default function InterviewManagementPage() {
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
   const navigate = useNavigate()
+
+  useEffect(() => {
+    document.title = `Manage Interviews | ${websiteName}`
+  }, [websiteName])
   const { token } = useAuth()
   const [selectedRole, setSelectedRole] = useState(roles[0])
   const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null)

@@ -8,6 +8,7 @@ import {
   Briefcase,
   FileText,
   FileStack,
+  Map,
   Settings,
   LogOut,
   Menu,
@@ -27,6 +28,7 @@ const navItems = [
   { label: "Notes", href: "/admin/notes", icon: BookOpen },
   { label: "Interview Content", href: "/admin/interviews", icon: Briefcase },
   { label: "Handwritten PDFs", href: "/admin/pdfs", icon: FileText },
+  { label: "Roadmaps", href: "/admin/roadmaps", icon: Map },
   { label: "Pages", href: "/admin/pages", icon: FileStack },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ]
@@ -60,7 +62,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </div>
           <div>
             <span className="font-semibold text-foreground text-lg">Admin Panel</span>
-            <p className="text-xs text-muted-foreground">CodeNotes</p>
+            <p className="text-xs text-muted-foreground">{import.meta.env.VITE_WEBSITE_NAME}</p>
           </div>
         </div>
 
@@ -111,7 +113,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               </div>
               <div>
                 <span className="font-semibold text-foreground text-lg">Admin Panel</span>
-                <p className="text-xs text-muted-foreground">CodeNotes</p>
+                <p className="text-xs text-muted-foreground">{}</p>
               </div>
             </div>
             <button

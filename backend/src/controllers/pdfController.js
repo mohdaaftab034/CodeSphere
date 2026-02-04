@@ -46,7 +46,7 @@ export const uploadPDF = async (req, res) => {
       // Store PDF data in database
       const pdfData = {
         title,
-        category,
+        category: category.trim(),
         level: level || "Beginner",
         pdfUrl: response.url,
         description,
@@ -205,7 +205,7 @@ export const getPDFById = async (req, res) => {
 }
 
 // User: Get PDF direct URL (for iframe/object tag)
-export const getPDFUrl = async (req, res) => { 
+export const getPDFUrl = async (req, res) => {
   try {
     const pdf = await HandwrittenPDF.findById(req.params.id)
 
@@ -233,6 +233,14 @@ export const streamPDF = async (req, res) => {
     const pdf = await HandwrittenPDF.findById(req.params.id)
     if (!pdf) {
       return res.status(404).json({ message: "PDF not found" })
+    }
+
+    // Premium Check
+    if (pdf.isPremium && (!req.user || (!req.user.isPaid && req.user.role !== "admin"))) {
+      return res.status(403).json({
+        message: "Premium subscription required to access this handwritten note",
+        isPremiumRequired: true
+      })
     }
 
     const pdfUrl = pdf.pdfUrl
@@ -343,6 +351,14 @@ export const downloadPDF = async (req, res) => {
 
     if (!pdf) {
       return res.status(404).json({ message: "PDF not found" })
+    }
+
+    // Premium Check
+    if (pdf.isPremium && (!req.user || (!req.user.isPaid && req.user.role !== "admin"))) {
+      return res.status(403).json({
+        message: "Premium subscription required to download this handwritten note",
+        isPremiumRequired: true
+      })
     }
 
     // Increment downloads counter

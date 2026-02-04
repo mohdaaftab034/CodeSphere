@@ -2,9 +2,12 @@ import cron from "node-cron"
 import InterviewQuestion from "../models/InterviewQuestion.js"
 import { sendInterviewQuestionNotification } from "./notificationService.js"
 
+const frontendUrl = process.env.FRONTEND_URL || ""
+const frontendBaseUrl = frontendUrl.replace(/\/$/, "")
+
 // Store scheduled tasks
 const scheduledTasks = {}
-
+ 
 /**
  * Initialize daily interview question scheduler
  * Publishes a new interview question every day at a specified time
@@ -34,10 +37,11 @@ export const initializeInterviewQuestionScheduler = (cronTime = "0 9 * * *") => 
         // Select a random question
         const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
 
-        console.log(`✅ Publishing daily interview question: "${randomQuestion.title}"`)
+        console.log(`✅ Publishing daily interview question: "${randomQuestion.question || randomQuestion.title || 'Question'}"`)
 
-        // Send notification to all users
-        await sendInterviewQuestionNotification(randomQuestion)
+        // Send notification to all users with direct link to the question
+        const questionUrl = `${frontendBaseUrl}/interview/question/${randomQuestion._id}`
+        await sendInterviewQuestionNotification(randomQuestion, questionUrl)
 
         console.log("✅ Daily interview question notification sent successfully")
       } catch (error) {

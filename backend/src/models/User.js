@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: function() {
+      required: function () {
         // Password is only required if not using OAuth
         return !this.googleId
       },
@@ -54,9 +54,28 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "HandwrittenPDF",
     }],
+    savedRoadmaps: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Roadmap",
+    }],
     createdAt: {
       type: Date,
       default: Date.now,
+    },
+    otp: {
+      type: String,
+      select: false,
+    },
+    otpExpiry: {
+      type: Date,
+      select: false,
+    },
+    isPaid: {
+      type: Boolean,
+      default: false,
+    },
+    razorpayOrderId: {
+      type: String,
     },
   },
   { timestamps: true }

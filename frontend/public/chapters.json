@@ -50,15 +50,6 @@
     "parentId": "mern"
   },
   {
-    "id": "react",
-    "name": "React",
-    "level": "Intermediate",
-    "description": "Frontend library for building user interfaces",
-    "icon": "Atom",
-    "gradient": "from-sky-500/80 to-blue-500/80",
-    "parentId": "mern"
-  },
-  {
     "id": "nodejs",
     "name": "Node.js",
     "level": "Intermediate",

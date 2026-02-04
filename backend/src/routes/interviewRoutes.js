@@ -3,7 +3,7 @@ import {
   createInterviewQuestion,
   updateInterviewQuestion,
   deleteInterviewQuestion,
-  getQuestionsByRole, 
+  getQuestionsByRole,
   getAllQuestions,
   getQuestionById,
   getAdminQuestions,
@@ -22,7 +22,7 @@ router.get("/admin/all", protect, adminOnly, getAdminQuestions)
 router.post("/admin/trigger-daily", protect, adminOnly, triggerDailyQuestion)
 
 // User routes - Read only (AFTER admin routes to avoid conflicts)
-router.get("/pdf/:role", generateRolePDF)
+router.get("/pdf/:role", protect, generateRolePDF)
 router.get("/", getQuestionsByRole)
 router.get("/all", getAllQuestions)
 router.get("/:id", getQuestionById)

@@ -1,8 +1,15 @@
-import { motion, useMotionValue, useTransform } from "framer-motion";
-import { ArrowRight, BookOpen, Code2, Sparkles, Terminal } from "lucide-react";
+import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  Laptop,
+  Code2,
+  Sparkles,
+  Terminal,
+  Rocket,
+} from "lucide-react"; // Naye icons
 import { Button } from "./ui/button";
 import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const textRevealVariants = {
   hidden: { y: "100%", opacity: 0 },
@@ -12,21 +19,21 @@ const textRevealVariants = {
     transition: {
       duration: 0.8,
       delay: i * 0.15,
-      ease: [0.22, 1, 0.36, 1], // Custom cubic bezier for smooth "reveal"
+      ease: [0.22, 1, 0.36, 1],
     },
   }),
 };
 
+// Content Change: Notes -> Modules/Resources
 const stats = [
-  { value: "500+", label: "Coding Notes" },
-  { value: "50+", label: "Topics Covered" },
-  { value: "10K+", label: "Learners" },
+  { value: "500+", label: "In-depth Modules" },
+  { value: "50+", label: "Tech Stacks" },
+  { value: "10K+", label: "Success Stories" },
 ];
 
 export function Hero() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  // Parallax Logic
   const handleMouseMove = (e: React.MouseEvent) => {
     const { clientX, clientY } = e;
     const moveX = (clientX - window.innerWidth / 2) / 50;
@@ -39,7 +46,7 @@ export function Hero() {
       onMouseMove={handleMouseMove}
       className="relative min-h-[110vh] flex flex-col items-center justify-center px-4 pt-32 pb-16 overflow-hidden"
     >
-      {/* Dynamic Background Pattern */}
+      {/* Background Pattern */}
       <div
         className="absolute inset-0 z-0 opacity-[0.4]"
         style={{
@@ -51,25 +58,15 @@ export function Hero() {
         }}
       />
 
-      {/* Breathing Gradient Orbs */}
+      {/* Background Orbs */}
       <motion.div
         animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px] -z-10"
       />
-      <motion.div
-        animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 1,
-        }}
-        className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[120px] -z-10"
-      />
 
       <div className="relative z-10 max-w-5xl mx-auto text-center">
-        {/* Animated Badge */}
+        {/* Animated Badge: Updated Content */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -82,14 +79,14 @@ export function Hero() {
           >
             <Sparkles className="w-4 h-4 text-primary" />
           </motion.div>
-          <span className="text-xs font-medium text-muted-foreground">
-            Free coding notes for everyone
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-widest">
+            Level up your engineering skills
           </span>
         </motion.div>
 
-        {/* Headline with Staggered Reveal */}
+        {/* Headline: "Notes" removed, more impactful language */}
         <h1
-          className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-8"
+          className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-foreground mb-6"
           style={{ fontFamily: "var(--font-cal-sans)" }}
         >
           <span className="block overflow-hidden pb-2">
@@ -100,7 +97,7 @@ export function Hero() {
               animate="visible"
               custom={0}
             >
-              Master Programming
+              Architect Your Future
             </motion.span>
           </span>
           <span className="block overflow-hidden pb-4">
@@ -111,24 +108,24 @@ export function Hero() {
               animate="visible"
               custom={1}
             >
-              with Clear Notes
+              Through Core Concepts
             </motion.span>
           </span>
         </h1>
 
-        {/* Subheadline */}
+        {/* Subheadline: Content updated for clarity and professionalism */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
           className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto mb-12 leading-relaxed"
         >
-          Your ultimate resource for JavaScript, React, MERN stack, and
-          technical interview preparation. Structured for clarity, built for
-          developers.
+          Deep dive into the world of Full-Stack Development, System Design, and
+          Scalable Architecture. The ultimate roadmap for engineers who build
+          for the next billion users.
         </motion.p>
 
-        {/* CTAs with Shine Effect */}
+        {/* CTAs: "Notes" word removed */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -138,14 +135,13 @@ export function Hero() {
           <Button
             asChild
             size="lg"
-            className="group relative overflow-hidden bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 h-12 text-base font-medium shadow-lg shadow-primary/20 transition-all hover:scale-105"
+            className="group relative overflow-hidden bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-10 h-14 text-lg font-medium shadow-xl shadow-primary/20 transition-all hover:scale-105"
           >
             <Link to="/notes">
               <span className="relative z-10 flex items-center">
-                Start Learning{" "}
-                <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                Explore Paths{" "}
+                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </span>
-              {/* Shimmer Effect */}
               <motion.div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent z-0" />
             </Link>
           </Button>
@@ -154,21 +150,21 @@ export function Hero() {
             asChild
             variant="outline"
             size="lg"
-            className="rounded-full px-8 h-12 text-base font-medium border-border hover:bg-secondary/80 bg-background/50 backdrop-blur-sm transition-all hover:scale-105"
+            className="rounded-full px-10 h-14 text-lg font-medium border-border hover:bg-secondary/80 bg-background/50 backdrop-blur-sm transition-all hover:scale-105"
           >
-            <Link to="/notes">
-              <BookOpen className="mr-2 w-4 h-4" />
-              Browse Notes
+            <Link to="/roadmap">
+              <Rocket className="mr-2 w-5 h-5" />
+              View Roadmap
             </Link>
           </Button>
         </motion.div>
 
-        {/* Stats Grid */}
+        {/* Stats Grid: Updated Labels */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
-          className="grid grid-cols-3 gap-8 sm:gap-16 border-t border-border pt-8 max-w-3xl mx-auto"
+          className="grid grid-cols-3 gap-8 sm:gap-16 border-t border-border pt-12 max-w-3xl mx-auto"
         >
           {stats.map((stat, index) => (
             <motion.div
@@ -181,7 +177,7 @@ export function Hero() {
               <div className="text-3xl sm:text-4xl font-bold text-foreground mb-1 group-hover:text-primary transition-colors">
                 {stat.value}
               </div>
-              <div className="text-xs sm:text-sm text-muted-foreground uppercase tracking-wide">
+              <div className="text-xs sm:text-sm text-muted-foreground uppercase tracking-widest">
                 {stat.label}
               </div>
             </motion.div>
@@ -189,7 +185,7 @@ export function Hero() {
         </motion.div>
       </div>
 
-      {/* Floating Parallax Icons */}
+      {/* Floating Icons */}
       <motion.div
         animate={{ x: mousePosition.x * -1, y: mousePosition.y * -1 }}
         className="absolute inset-0 pointer-events-none"
@@ -200,8 +196,8 @@ export function Hero() {
           transition={{ delay: 0.8 }}
           className="absolute bottom-20 left-10 lg:left-20"
         >
-          <div className="bg-secondary/50 p-4 rounded-2xl backdrop-blur-md border border-border/50 rotate-12">
-            <Code2 className="w-8 h-8 text-foreground/50" />
+          <div className="bg-secondary/50 p-5 rounded-2xl backdrop-blur-md border border-border/50 rotate-12">
+            <Code2 className="w-10 h-10 text-foreground/50" />
           </div>
         </motion.div>
 
@@ -211,8 +207,8 @@ export function Hero() {
           transition={{ delay: 1 }}
           className="absolute top-40 right-10 lg:right-20"
         >
-          <div className="bg-secondary/50 p-4 rounded-2xl backdrop-blur-md border border-border/50 -rotate-12">
-            <Terminal className="w-8 h-8 text-foreground/50" />
+          <div className="bg-secondary/50 p-5 rounded-2xl backdrop-blur-md border border-border/50 -rotate-12">
+            <Laptop className="w-10 h-10 text-foreground/50" />
           </div>
         </motion.div>
       </motion.div>

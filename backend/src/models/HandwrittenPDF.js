@@ -11,7 +11,7 @@ const handwrittenPDFSchema = new mongoose.Schema(
     category: {
       type: String,
       required: [true, "Category is required"],
-      enum: ["JavaScript", "React", "MERN", "DSA", "System Design"],
+      trim: true,
     },
     level: {
       type: String,

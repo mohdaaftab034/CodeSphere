@@ -9,9 +9,9 @@ import AdminLayout from "../components/AdminLayout"
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
-    siteName: "CodeNotes",
+    siteName: `${import.meta.env.VITE_WEBSITE_NAME}`,
     siteDescription: "Learn coding with structured notes",
-    contactEmail: "support@codenotes.com",
+    contactEmail: `support@${import.meta.env.VITE_WEBSITE_NAME}.com`,
     maintenanceMode: false,
     allowSignups: true,
     emailNotifications: true,

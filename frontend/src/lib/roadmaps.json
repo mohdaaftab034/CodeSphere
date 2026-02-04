@@ -1,0 +1,47 @@
+[
+    {
+        "id": "full-stack",
+        "title": "Full Stack Developer",
+        "description": "Master both frontend and backend technologies",
+        "icon": "Layers",
+        "color": "text-blue-500",
+        "path": "/roadmap/full-stack",
+        "markdownContent": "# Full Stack Developer Roadmap\n\nBecome a Full Stack Developer in 2024. This roadmap covers everything from the basics of HTML/CSS to advanced server-side architecture.\n\n## 1. Frontend Fundamentals\n- HTML5 & CSS3\n- JavaScript (ES6+)\n- Responsive Design\n\n```javascript\n// Master the basics\nconst greeting = 'Hello World';\nconsole.log(greeting);\n```\n\n## 2. Frontend Frameworks\n- **React**: Components, Hooks, State Management\n- **Vue/Angular**: Alternative options\n\n## 3. Backend Technologies\n- **Node.js**: Server-side JavaScript\n- **Databases**: MongoDB (NoSQL), PostgreSQL (SQL)\n- **API Design**: RESTful APIs, GraphQL\n\n## 4. DevOps & Deployment\n- Docker & Kubernetes\n- CI/CD Pipelines\n- AWS / Vercel Deployment"
+    },
+    {
+        "id": "frontend",
+        "title": "Frontend Engineer",
+        "description": "Build beautiful, interactive user interfaces",
+        "icon": "Layout",
+        "color": "text-purple-500",
+        "path": "/roadmap/frontend",
+        "markdownContent": "# Frontend Engineer Roadmap\n\nFocus on crafting beautiful user experiences.\n\n## Core Skills\n- Advanced CSS (Flexbox, Grid)\n- DOM Manipulation\n- Accessibility (a11y)\n\n## Modern Ecosystem\n- TypeScript\n- Next.js / Remix\n- State Management (Redux, Zustand)\n\n```tsx\ninterface Props {\n  title: string;\n}\n\nconst Card = ({ title }: Props) => <div className='card'>{title}</div>;\n```"
+    },
+    {
+        "id": "backend",
+        "title": "Backend Architect",
+        "description": "Design scalable servers and databases",
+        "icon": "Server",
+        "color": "text-emerald-500",
+        "path": "/roadmap/backend",
+        "markdownContent": "# Backend Architect Roadmap\n\nBuild the systems that power applications.\n\n## Server Side\n- Node.js, Python, or Go\n- System Design Patterns\n- Microservices Architecture\n\n## Data Management\n- Database Design & Normalization\n- Caching (Redis)\n- Message Queues (RabbitMQ, Kafka)"
+    },
+    {
+        "id": "devops",
+        "title": "DevOps & Cloud",
+        "description": "Automate deployment and manage infrastructure",
+        "icon": "Cloud",
+        "color": "text-orange-500",
+        "path": "/roadmap/devops",
+        "markdownContent": "# DevOps Roadmap\n\nBridge the gap between development and operations.\n\n## Infrastructure as Code\n- Terraform\n- Ansible\n\n## Cloud Providers\n- AWS, Azure, Google Cloud\n- Serverless Architecture"
+    },
+    {
+        "id": "system-design",
+        "title": "System Design",
+        "description": "Learn to architect complex distributed systems",
+        "icon": "Cpu",
+        "color": "text-pink-500",
+        "path": "/roadmap/system-design",
+        "markdownContent": "# System Design Roadmap\n\nMaster the art of building scalable systems.\n\n## Core Concepts\n- Scalability (Horizontal vs Vertical)\n- Load Balancing\n- Database Sharding\n- CAP Theorem\n\n## Design Interviews\n- URL Shortener\n- Chat Application\n- Rate Limiter"
+    }
+]

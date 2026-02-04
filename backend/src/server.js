@@ -25,6 +25,8 @@ import pdfRoutes from "./routes/pdfRoutes.js"
 import userRoutes from "./routes/userRoutes.js"
 import chapterRoutes from "./routes/chapterRoutes.js"
 import contactRoutes from "./routes/contactRoutes.js"
+import subscriptionRoutes from "./routes/subscriptionRoutes.js"
+import roadmapRoutes from "./routes/roadmapRoutes.js"
 
 // Import passport after env is loaded
 import passport from "./config/passport.js"
@@ -32,9 +34,14 @@ import { initializeInterviewQuestionScheduler } from "./utils/scheduler.js"
 
 const app = express()
 const PORT = process.env.PORT || 5001
- 
+
 // Middleware
-app.use(cors())
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}))
 app.use(express.json())
 
 // Initialize Passport
@@ -56,6 +63,8 @@ app.use("/api/interview-questions", interviewRoutes)
 app.use("/api/pdfs", pdfRoutes)
 app.use("/api/users", userRoutes)
 app.use("/api/contact", contactRoutes)
+app.use("/api/subscription", subscriptionRoutes)
+app.use("/api/roadmaps", roadmapRoutes)
 
 // 404 handler
 app.use((req, res) => {
@@ -67,10 +76,10 @@ app.use((err, req, res, next) => {
   console.error(err.stack)
   res.status(500).json({ message: "Internal server error", error: err.message })
 })
- 
-app.listen(5000, () => {
+
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
-  
+
   // Initialize schedulers
   initializeInterviewQuestionScheduler("0 9 * * *") // Daily at 9 AM
 })

@@ -1,6 +1,6 @@
-# Coding Notes Platform - Backend API
+# CodeSphere - Backend API
 
-Node.js + Express + MongoDB backend for the Coding Notes Platform.
+Node.js + Express + MongoDB backend for the CodeSphere platform.
 
 ## 🎉 New: Google OAuth Authentication
 
@@ -73,7 +73,7 @@ Response:
 ```
 
 **Special Admin Login:**
-- Email: `admin@codenotes.com`
+- Email: `admin@codesphere.com`
 - Password: `admin123`
 - Role: `admin` (automatic)
 
@@ -695,4 +695,4 @@ If a user signs in with Google using an email that already exists in the databas
 
 ---
 
-Made with ❤️ for Coding Notes Platform
+Made with ❤️ for CodeSphere

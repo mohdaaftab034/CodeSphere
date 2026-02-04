@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Navbar } from "../components/Navbar";
 import { Footer } from "../components/Footer";
@@ -6,7 +6,12 @@ import { Check, Sparkles, Zap, Shield, Rocket } from "lucide-react";
 import { Button } from "../components/ui/button";
 
 export default function PricingPage() {
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
   const [isYearly, setIsYearly] = useState(false);
+
+  useEffect(() => {
+    document.title = `Pricing | ${websiteName}`
+  }, [websiteName])
 
   const plans = [
     {

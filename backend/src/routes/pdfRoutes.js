@@ -23,9 +23,9 @@ router.post("/", protect, adminOnly, createPDF)
 
 // User routes - Read only (including specific sub-routes before :id parameter)
 router.get("/", getPDFs)
-router.get("/:id/url", getPDFUrl)
-router.get("/:id/stream", streamPDF)
-router.post("/:id/download", downloadPDF)
+router.get("/:id/url", protect, getPDFUrl)
+router.get("/:id/stream", protect, streamPDF)
+router.post("/:id/download", protect, downloadPDF)
 router.get("/:id", getPDFById)
 
 // Update and Delete

@@ -20,10 +20,19 @@ import { fetchChaptersConfig, ChapterConfig } from "../lib/chapters"
 import { MarkdownEditor } from "../components/MarkdownEditor"
 
 export default function NoteEditorPage() {
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
   const navigate = useNavigate()
   const { id } = useParams()
   const isEdit = !!id
   const { token, user } = useAuth()
+
+  useEffect(() => {
+    if (isEdit) {
+      document.title = `Edit Note | ${websiteName}`
+    } else {
+      document.title = `Create Note | ${websiteName}`
+    }
+  }, [isEdit, websiteName])
 
   const [formData, setFormData] = useState({
     title: "",

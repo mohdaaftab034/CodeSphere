@@ -16,7 +16,7 @@ export function FinalCTA() {
         transition={{ duration: 0.8, type: "spring" }}
         className="max-w-5xl mx-auto"
       >
-        <div className="relative p-12 sm:p-20 rounded-[2.5rem] bg-primary overflow-hidden text-center shadow-2xl shadow-primary/30">
+        <div className="relative p-12 sm:p-20 rounded-md bg-primary overflow-hidden text-center shadow-2xl shadow-primary/30">
           {/* Animated Background Elements */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:3rem_3rem] opacity-50" />
 
@@ -72,7 +72,7 @@ export function FinalCTA() {
                   size="lg"
                   className="relative bg-white text-primary hover:bg-gray-50 rounded-xl px-8 h-14 text-base font-bold shadow-xl min-w-[200px]"
                 >
-                  <Link to="/notes" className="flex items-center gap-2">
+                  <Link to="/roadmap" className="flex items-center gap-2">
                     Start Learning
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </Link>

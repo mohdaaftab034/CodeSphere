@@ -13,14 +13,19 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { contactAPI } from "../lib/api";
 import { useAuth } from "../contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 
 export default function ContactPage() {
-  const { user, token } = useAuth();
+  const websiteName = import.meta.env.VITE_WEBSITE_NAME
+  const { user, token } = useAuth()
+
+  useEffect(() => {
+    document.title = `Contact Us | ${websiteName}`
+  }, [websiteName]);
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);

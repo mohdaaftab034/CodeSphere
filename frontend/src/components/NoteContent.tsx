@@ -10,12 +10,14 @@ import {
   ArrowLeft,
   ArrowRight,
   Download,
+  Lock,
 } from "lucide-react"
 import { Button } from "./ui/button"
 import { Link, useNavigate } from "react-router-dom"
 import { MarkdownRenderer } from "./MarkdownRenderer"
 import { notesAPI, usersAPI } from "../lib/api"
 import { useAuth } from "../contexts/AuthContext"
+import SubscriptionModal from "./SubscriptionModal"
 
 interface ApiNote {
   _id: string
@@ -34,7 +36,6 @@ interface ApiNote {
 
 interface NoteContentProps {
   note: ApiNote
-  relatedNotes: any[]
   nextNote?: ApiNote | null
 }
 
@@ -53,11 +54,12 @@ const categoryColors: Record<string, string> = {
   "System Design": "bg-orange-500/10 text-orange-500 border-orange-500/20",
 }
 
-export function NoteContent({ note, relatedNotes, nextNote }: NoteContentProps) {
+export function NoteContent({ note, nextNote }: NoteContentProps) {
   const [isSaved, setIsSaved] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
+  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false)
   const navigate = useNavigate()
-  const { token } = useAuth()
+  const { token, isPaid, user } = useAuth()
 
   // Check if the note is saved when component mounts
   useEffect(() => {
@@ -90,13 +92,10 @@ export function NoteContent({ note, relatedNotes, nextNote }: NoteContentProps) 
 
     try {
       if (isSaved) {
-        console.log("Unsaving note:", note._id)
         await usersAPI.unsaveNote(token, note._id)
         setIsSaved(false)
       } else {
-        console.log("Saving note:", note._id)
-        const result = await usersAPI.saveNote(token, note._id)
-        console.log("Save result:", result)
+        await usersAPI.saveNote(token, note._id)
         setIsSaved(true)
       }
     } catch (err) {
@@ -106,6 +105,10 @@ export function NoteContent({ note, relatedNotes, nextNote }: NoteContentProps) 
   }
 
   const handleDownloadPDF = async () => {
+    if (!isPaid && user?.role !== "admin") {
+      setIsSubscriptionModalOpen(true)
+      return
+    }
     if (isDownloading) return
     setIsDownloading(true)
     try {
@@ -193,7 +196,7 @@ export function NoteContent({ note, relatedNotes, nextNote }: NoteContentProps) 
                 aria-label="Download as PDF"
                 title="Download this note as PDF"
               >
-                <Download className="w-5 h-5" />
+                {isPaid || user?.role === "admin" ? <Download className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
               </Button>
               <Button
                 variant="outline"
@@ -217,37 +220,6 @@ export function NoteContent({ note, relatedNotes, nextNote }: NoteContentProps) 
         >
           <MarkdownRenderer content={note.content} />
         </motion.div>
-
-        {/* Related Notes */}
-        {relatedNotes.length > 0 && (
-          <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-16">
-            <h3 className="text-xl font-semibold text-foreground mb-6">Related Notes</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {relatedNotes.map((related) => (
-                <Link
-                  key={related._id || related.id}
-                  to={`/notes/${related._id || related.id}`}
-                  className="group p-5 rounded-2xl bg-card border border-border hover:border-primary/30 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`px-2 py-0.5 text-xs font-medium rounded-md border ${categoryColors[related.category] || "bg-secondary text-muted-foreground border-border"}`}>
-                      {related.category}
-                    </span>
-                    {related.difficulty && (
-                      <span className={`px-2 py-0.5 text-xs font-medium rounded-md border ${difficultyColors[related.difficulty] || "bg-secondary text-muted-foreground border-border"}`}>
-                        {related.difficulty}
-                      </span>
-                    )}
-                  </div>
-                  <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {related.title}
-                  </h4>
-                  <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{related.excerpt || related.description || ""}</p>
-                </Link>
-              ))}
-            </div>
-          </motion.section>
-        )}
 
         {/* Navigation */}
         <motion.div
@@ -278,6 +250,11 @@ export function NoteContent({ note, relatedNotes, nextNote }: NoteContentProps) 
           )}
         </motion.div>
       </div>
+
+      <SubscriptionModal
+        isOpen={isSubscriptionModalOpen}
+        onClose={() => setIsSubscriptionModalOpen(false)}
+      />
     </article>
   )
 }

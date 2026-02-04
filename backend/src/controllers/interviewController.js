@@ -1,7 +1,11 @@
 import InterviewQuestion from "../models/InterviewQuestion.js"
 import { validateInterviewQuestion } from "../middleware/validation.js"
-import PDFDocument from "pdfkit"
+import { createBasePDF, renderMarkdownToPDF, finalizePDF } from "../utils/pdfHelpers.js"
 import { sendInterviewQuestionNotification } from "../utils/notificationService.js"
+
+const websiteName = process.env.WEBSITE_NAME || "CodeSphere"
+const frontendUrl = process.env.FRONTEND_URL || ""
+const frontendBaseUrl = frontendUrl.replace(/\/$/, "")
 
 // Admin: Create interview question
 export const createInterviewQuestion = async (req, res) => {
@@ -19,9 +23,10 @@ export const createInterviewQuestion = async (req, res) => {
 
     const question = await InterviewQuestion.create(value)
 
-    // Send notification email to all users
+    // Send notification email to all users with direct link to the question
     try {
-      await sendInterviewQuestionNotification(question)
+      const questionUrl = `${frontendBaseUrl}/interview/question/${question._id}`
+      await sendInterviewQuestionNotification(question, questionUrl)
     } catch (notificationError) {
       console.error("⚠️ Failed to send interview question notification:", notificationError.message)
       // Don't fail the request if notification fails
@@ -90,8 +95,10 @@ export const getQuestionsByRole = async (req, res) => {
     let filter = {}
 
     if (role) {
-      filter.roles = role
+      filter.roles = { $regex: new RegExp(`^${role.replace(/-/g, " ")}$`, "i") }
     }
+
+    filter.isPublished = { $ne: false }
 
     if (difficulty) {
       filter.difficulty = difficulty
@@ -173,197 +180,88 @@ export const getAdminQuestions = async (req, res) => {
   }
 }
 
-// User: Generate PDF for role-specific questions
+// User: Generate PDF for role-specific questions (Premium Feature)
 export const generateRolePDF = async (req, res) => {
   try {
     const { role } = req.params
 
-    // Fetch questions for this role
-    const questions = await InterviewQuestion.find({ roles: role })
+    // Premium Check
+    if (!req.user || (!req.user.isPaid && req.user.role !== "admin")) {
+      return res.status(403).json({
+        message: "Premium subscription required to download interview questions as PDF",
+        isPremiumRequired: true
+      })
+    }
+
+    // Fetch questions for this role - use more robust matching
+    // We search case-insensitively and handle both slug and name if possible
+    const questions = await InterviewQuestion.find({
+      roles: { $regex: new RegExp(`^${role.replace(/-/g, " ")}$`, "i") },
+      isPublished: { $ne: false }
+    }).sort({ difficulty: 1, createdAt: -1 })
 
     if (!questions || questions.length === 0) {
       return res.status(404).json({ message: "No questions found for this role" })
     }
 
-    // Create PDF document
-    const doc = new PDFDocument({ margin: 50, size: "A4" })
+    // Create PDF document using helper
+    const doc = createBasePDF(`${role} Interview Questions`)
 
-    // Set response headers for PDF download
+    // Set response headers
     res.setHeader("Content-Type", "application/pdf")
     res.setHeader("Content-Disposition", `attachment; filename="${role.replace(/\s+/g, "-")}-interview-questions.pdf"`)
 
-    // Pipe the PDF to the response
+    // Pipe PDF to response
     doc.pipe(res)
 
-    // Add title
-    doc.fontSize(24).font("Helvetica-Bold").text(`${role} Interview Questions`, { align: "center" })
-    doc.moveDown()
-    doc.fontSize(12).font("Helvetica").text(`Total Questions: ${questions.length}`, { align: "center" })
-    doc.fontSize(10).text(`Generated on: ${new Date().toLocaleDateString()}`, { align: "center" })
+    // Header
+    doc.fontSize(24).font("Helvetica-Bold").fillColor("#0066cc").text(`${role} Interview Questions`, { align: "center" })
+    doc.moveDown(0.2)
+    doc.fontSize(10).font("Helvetica").fillColor("#666666").text(`Total Questions: ${questions.length}  |  Generated on: ${new Date().toLocaleDateString()}`, { align: "center" })
     doc.moveDown(2)
 
     // Add each question
     questions.forEach((question, index) => {
-      // Check if we need a new page
-      if (doc.y > 700) {
+      // Avoid page break issues for questions
+      if (doc.y > doc.page.height - 150) {
         doc.addPage()
       }
 
       // Question number and difficulty
-      doc.fontSize(14).font("Helvetica-Bold").fillColor("#1e40af")
-      doc.text(`Question ${index + 1}`, { continued: false })
-      doc.fontSize(10).font("Helvetica").fillColor("#666666")
-      doc.text(`Difficulty: ${question.difficulty}`, { align: "right" })
+      doc.fontSize(12).font("Helvetica-Bold").fillColor("#1e40af")
+      doc.text(`Question ${index + 1}`, { continued: true })
+      doc.fontSize(10).font("Helvetica").fillColor("#666666").text(`  [${question.difficulty}]`, { align: "right" })
       doc.moveDown(0.5)
 
       // Question text
-      doc.fontSize(12).font("Helvetica-Bold").fillColor("#000000")
+      doc.fontSize(13).font("Helvetica-Bold").fillColor("#000000")
       doc.text(question.question, { align: "left" })
-      doc.moveDown()
+      doc.moveDown(0.5)
 
-      // Answer - use content if available, otherwise answer
-      const answerText = question.content || question.answer
-      
-      // Helper function to parse and format markdown text
-      const parseMarkdownLine = (text, doc) => {
-        // Detect heading levels
-        const headingMatch = text.match(/^(#{1,6})\s+(.+)$/)
-        if (headingMatch) {
-          const level = headingMatch[1].length
-          const headingText = headingMatch[2]
-          const sizes = { 1: 16, 2: 14, 3: 12, 4: 12, 5: 11, 6: 11 }
-          doc.fontSize(sizes[level]).font("Helvetica-Bold").fillColor("#000000")
-          doc.text(headingText, { continued: false })
-          return true
-        }
-        
-        // Parse bold, italic, and other inline markdown
-        const parts = []
-        let remaining = text
-        let lastIndex = 0
-        
-        // Regex to match **bold**, *italic*, and combinations
-        const markdownRegex = /(\*\*[^*]+\*\*|\*[^*]+\*)/g
-        let match
-        
-        while ((match = markdownRegex.exec(text)) !== null) {
-          // Add text before the match
-          if (match.index > lastIndex) {
-            parts.push({ type: 'text', content: text.substring(lastIndex, match.index) })
-          }
-          
-          // Add the formatted text
-          const matched = match[0]
-          if (matched.startsWith('**') && matched.endsWith('**')) {
-            parts.push({ type: 'bold', content: matched.slice(2, -2) })
-          } else if (matched.startsWith('*') && matched.endsWith('*')) {
-            parts.push({ type: 'italic', content: matched.slice(1, -1) })
-          }
-          
-          lastIndex = match.index + matched.length
-        }
-        
-        // Add remaining text
-        if (lastIndex < text.length) {
-          parts.push({ type: 'text', content: text.substring(lastIndex) })
-        }
-        
-        // If no markdown was found, just add the whole text
-        if (parts.length === 0) {
-          parts.push({ type: 'text', content: text })
-        }
-        
-        // Render parts
-        if (parts.length > 0) {
-          doc.fontSize(11).fillColor("#1a1a1a")
-          let currentX = doc.x
-          
-          parts.forEach((part, idx) => {
-            if (part.type === 'text') {
-              doc.font("Helvetica")
-              doc.text(part.content, { continued: idx < parts.length - 1 })
-            } else if (part.type === 'bold') {
-              doc.font("Helvetica-Bold")
-              doc.text(part.content, { continued: idx < parts.length - 1 })
-            } else if (part.type === 'italic') {
-              doc.font("Helvetica-Oblique")
-              doc.text(part.content, { continued: idx < parts.length - 1 })
-            }
-          })
-          
-          return true
-        }
-        
-        return false
-      }
-      
-      // Parse content for code blocks
-      if (question.content) {
-        const lines = answerText.split("\n")
-        let inCodeBlock = false
-        let codeLanguage = ""
+      // Answer/Content
+      const content = question.content || question.answer || "No answer provided."
+      doc.fillColor("#000000")
+      renderMarkdownToPDF(doc, content)
 
-        lines.forEach((line) => {
-          if (line.trim().startsWith("```")) {
-            if (!inCodeBlock) {
-              // Start of code block
-              inCodeBlock = true
-              codeLanguage = line.replace(/```/g, "").trim()
-              doc.moveDown(0.5)
-              doc.fontSize(9).font("Courier").fillColor("#1e3a8a")
-              if (codeLanguage) {
-                doc.text(`[${codeLanguage}]`, { continued: false })
-              }
-            } else {
-              // End of code block
-              inCodeBlock = false
-              doc.moveDown(0.5)
-            }
-          } else {
-            if (inCodeBlock) {
-              // Inside code block - use monospace font
-              doc.fontSize(9).font("Courier").fillColor("#1e3a8a")
-              doc.text(line, { continued: false })
-            } else {
-              // Regular text - parse markdown
-              if (line.trim().length > 0) {
-                doc.fontSize(11).fillColor("#1a1a1a")
-                parseMarkdownLine(line, doc)
-              } else {
-                doc.moveDown(0.3)
-              }
-            }
-          }
-        })
-      } else {
-        // Plain answer text
-        doc.fontSize(11).font("Helvetica").fillColor("#1a1a1a")
-        doc.text(answerText, { align: "left" })
-      }
-
-      doc.moveDown(2)
-
-      // Add separator line
+      // Question separator - only if not the last question
       if (index < questions.length - 1) {
-        doc.strokeColor("#e5e7eb").lineWidth(1)
-        doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke()
-        doc.moveDown()
+        doc.moveDown(1)
+        doc.strokeColor("#eeeeee").lineWidth(1).moveTo(50, doc.y).lineTo(545, doc.y).stroke()
+        doc.moveDown(1.5)
       }
     })
 
-    // Add footer on last page
-    doc.fontSize(9).fillColor("#666666").text(
-      "Generated by Coding Notes Platform",
-      50,
-      doc.page.height - 50,
-      { align: "center" }
-    )
+    // Finalize with numbering and footer using helper
+    finalizePDF(doc, `${role} Interview Questions`)
 
-    // Finalize PDF
     doc.end()
   } catch (error) {
-    console.error("PDF generation error:", error)
-    res.status(500).json({ message: error.message })
+    console.error("Interview PDF generation error:", error)
+    if (!res.headersSent) {
+      res.status(500).json({ message: "Failed to generate PDF", error: error.message })
+    } else {
+      res.end()
+    }
   }
 }
 
@@ -380,8 +278,9 @@ export const triggerDailyQuestion = async (req, res) => {
     // Select a random question
     const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
 
-    // Send notification to all users
-    const result = await sendInterviewQuestionNotification(randomQuestion)
+    // Send notification to all users with direct link to the question
+    const questionUrl = `${frontendBaseUrl}/interview/question/${randomQuestion._id}`
+    const result = await sendInterviewQuestionNotification(randomQuestion, questionUrl)
 
     if (result.success) {
       res.status(200).json({
