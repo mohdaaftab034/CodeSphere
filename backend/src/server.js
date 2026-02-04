@@ -50,9 +50,27 @@ app.use(passport.initialize())
 // Connect to MongoDB
 connectDB()
 
+// Root route
+app.get("/", (req, res) => {
+  res.status(200).json({
+    message: "CodeSphere API is online",
+    version: "1.0.0",
+    status: "healthy",
+    endpoints: {
+      health: "/api/health",
+      auth: "/api/auth",
+      notes: "/api/notes"
+    }
+  })
+})
+
 // Health check
 app.get("/api/health", (req, res) => {
-  res.status(200).json({ message: "Server is running" })
+  res.status(200).json({
+    status: "UP",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || "development"
+  })
 })
 
 // Routes
