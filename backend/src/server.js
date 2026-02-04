@@ -83,3 +83,6 @@ app.listen(PORT, () => {
   // Initialize schedulers
   initializeInterviewQuestionScheduler("0 9 * * *") // Daily at 9 AM
 })
+
+export default app
+
