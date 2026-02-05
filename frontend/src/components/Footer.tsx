@@ -23,8 +23,8 @@ const footerLinks = {
 };
 
 const socialLinks = [
-  { icon: Linkedin, href: "#", label: "LinkedIn", color: "hover:text-blue-600 hover:bg-blue-600/10 hover:border-blue-600/20" },
-  { icon: Instagram, href: "#", label: "Instagram", color: "hover:text-pink-600 hover:bg-pink-600/10 hover:border-pink-600/20" },
+  { icon: Linkedin, href: "https://www.linkedin.com/company/112081935/admin/dashboard", label: "LinkedIn", color: "hover:text-blue-600 hover:bg-blue-600/10 hover:border-blue-600/20" },
+  { icon: Instagram, href: "https://www.instagram.com/codespheres.tech", label: "Instagram", color: "hover:text-pink-600 hover:bg-pink-600/10 hover:border-pink-600/20" },
 ];
 
 export function Footer() {
