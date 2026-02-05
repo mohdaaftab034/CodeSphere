@@ -16,7 +16,7 @@ import { Button } from "../components/ui/button"
 import { interviewAPI } from "../lib/api"
 import { InterviewQuestionRenderer } from "../components/InterviewQuestionRenderer"
 import { toast } from "react-hot-toast"
-
+ 
 export default function SingleQuestionPage() {
     const { id } = useParams<{ id: string }>()
     const [question, setQuestion] = useState<any>(null)
