@@ -1,8 +1,2 @@
 .env
 node_modules
-dist
-coverage
-logs
-*.log
-uploads
-*.env
