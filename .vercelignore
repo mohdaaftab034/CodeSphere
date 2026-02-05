@@ -1,0 +1,4 @@
+backend/
+.venv/
+.git/
+node_modules/
