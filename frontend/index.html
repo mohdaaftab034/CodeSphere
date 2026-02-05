@@ -14,17 +14,23 @@
     />
 
     <!-- Google Analytics (GA4) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4V3DKG7TFX"></script>
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-4V3DKG7TFX"
+    ></script>
     <script>
       window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-4V3DKG7TFX');
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+      gtag("config", "G-4V3DKG7TFX");
     </script>
     <!-- End Google Analytics -->
-
   </head>
   <body>
+    <h1 style="color: red; font-size: 40px">DEPLOY TEST – SHOULD BE VISIBLE</h1>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
