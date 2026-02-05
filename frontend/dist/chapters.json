@@ -1,0 +1,119 @@
+[
+  {
+    "id": "javascript",
+    "name": "JavaScript",
+    "level": "Beginner",
+    "description": "Fundamentals and modern JS concepts",
+    "icon": "Code2",
+    "gradient": "from-yellow-500/80 to-amber-500/80",
+    "featured": true,
+    "hasSubChapters": false,
+    "topicCount": 5
+  },
+  {
+    "id": "react",
+    "name": "React",
+    "level": "Intermediate",
+    "description": "Components, hooks, and patterns",
+    "icon": "Atom",
+    "gradient": "from-sky-500/80 to-cyan-500/80",
+    "featured": true,
+    "hasSubChapters": false,
+    "topicCount": 6
+  },
+  {
+    "id": "mern",
+    "name": "MERN Stack",
+    "level": "Intermediate",
+    "description": "Full-stack MongoDB, Express, React, Node.js",
+    "icon": "Layers",
+    "gradient": "from-orange-500/80 to-amber-500/80",
+    "featured": true,
+    "hasSubChapters": true
+  },
+  {
+    "id": "mongodb",
+    "name": "MongoDB",
+    "level": "Intermediate",
+    "description": "NoSQL database fundamentals and operations",
+    "icon": "Layers",
+    "gradient": "from-green-500/80 to-emerald-500/80",
+    "parentId": "mern"
+  },
+  {
+    "id": "express",
+    "name": "Express.js",
+    "level": "Intermediate",
+    "description": "Backend framework for Node.js applications",
+    "icon": "Code2",
+    "gradient": "from-gray-500/80 to-slate-500/80",
+    "parentId": "mern"
+  },
+  {
+    "id": "nodejs",
+    "name": "Node.js",
+    "level": "Intermediate",
+    "description": "JavaScript runtime for server-side development",
+    "icon": "Code2",
+    "gradient": "from-lime-500/80 to-green-600/80",
+    "parentId": "mern"
+  },
+  {
+    "id": "rest-api",
+    "name": "REST APIs",
+    "level": "Intermediate",
+    "description": "Building and consuming RESTful web services",
+    "icon": "Briefcase",
+    "gradient": "from-amber-500/80 to-orange-500/80",
+    "parentId": "mern"
+  },
+  {
+    "id": "authentication",
+    "name": "Authentication & Security",
+    "level": "Intermediate",
+    "description": "JWT, OAuth, and secure authentication patterns",
+    "icon": "Briefcase",
+    "gradient": "from-red-500/80 to-rose-500/80",
+    "parentId": "mern"
+  },
+  {
+    "id": "dsa",
+    "name": "Data Structures & Algorithms",
+    "level": "Intermediate",
+    "description": "Essential DSA concepts and interview prep",
+    "icon": "Briefcase",
+    "gradient": "from-violet-500/80 to-purple-500/80",
+    "hasSubChapters": false,
+    "topicCount": 8
+  },
+  {
+    "id": "system-design",
+    "name": "System Design",
+    "level": "Advanced",
+    "description": "Designing scalable systems and architecture",
+    "icon": "Briefcase",
+    "gradient": "from-pink-500/80 to-rose-500/80",
+    "hasSubChapters": false,
+    "topicCount": 4
+  },
+  {
+    "id": "machine-learning",
+    "name": "Machine Learning",
+    "level": "Advanced",
+    "description": "ML fundamentals and applied learning",
+    "icon": "Layers",
+    "gradient": "from-emerald-500/80 to-teal-500/80",
+    "hasSubChapters": false,
+    "topicCount": 3
+  },
+  {
+    "id": "devops",
+    "name": "DevOps",
+    "level": "Advanced",
+    "description": "CI/CD, containerization, and cloud deployment",
+    "icon": "Briefcase",
+    "gradient": "from-blue-500/80 to-indigo-500/80",
+    "hasSubChapters": false,
+    "topicCount": 5
+  }
+]
