@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "frontend/dist" }
+    },
+    {
+      "src": "backend/src/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/src/server.js"
+    },
+    {
+      "src": "/sitemap.xml",
+      "dest": "frontend/dist/sitemap.xml"
+    },
+    {
+      "src": "/robots.txt",
+      "dest": "frontend/dist/robots.txt"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "frontend/dist/favicon.ico"
+    },
+    {
+      "src": "/(.*\\..+)",
+      "dest": "frontend/dist/$1"
+    },
+    {
+      "src": "/((?!api|sitemap|robots|favicon).*)",
+      "dest": "frontend/dist/index.html"
+    }
+  ]
+}

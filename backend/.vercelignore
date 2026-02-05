@@ -1,0 +1,7 @@
+frontend/
+.env.local
+.env
+node_modules/
+.git/
+.venv/
+.vercelignore
