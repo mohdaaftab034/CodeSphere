@@ -104,9 +104,14 @@ export const verifyPayment = async (req, res) => {
 
         if (isMatch) {
             // Payment is verified
+            // Set subscription to expire 30 days from now
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 30);
+
             await User.findByIdAndUpdate(req.user.id, {
                 isPaid: true,
                 razorpayOrderId: razorpay_order_id,
+                subscriptionExpiresAt: expiresAt,
             });
 
             res.status(200).json({
@@ -130,10 +135,23 @@ export const verifyPayment = async (req, res) => {
 // @access  Private
 export const getStatus = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select("isPaid");
+        const user = await User.findById(req.user.id).select("isPaid subscriptionExpiresAt");
+        
+        // Check if subscription has expired
+        let isPaid = user.isPaid;
+        if (isPaid && user.subscriptionExpiresAt && new Date() > new Date(user.subscriptionExpiresAt)) {
+            // Subscription has expired, update user record
+            await User.findByIdAndUpdate(req.user.id, {
+                isPaid: false,
+                subscriptionExpiresAt: null,
+            });
+            isPaid = false;
+        }
+
         res.status(200).json({
             success: true,
-            isPaid: user.isPaid,
+            isPaid: isPaid,
+            subscriptionExpiresAt: user.subscriptionExpiresAt,
         });
     } catch (error) {
         res.status(500).json({ message: error.message });

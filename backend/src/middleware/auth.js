@@ -20,6 +20,15 @@ export const protect = async (req, res, next) => {
         return res.status(404).json({ message: "User not found" })
       }
 
+      // Check if subscription has expired
+      if (user.isPaid && user.subscriptionExpiresAt && new Date() > new Date(user.subscriptionExpiresAt)) {
+        console.log(`⏰ [Auth] Subscription expired for user ${user.email}`)
+        // Automatically deactivate expired subscription
+        user.isPaid = false
+        user.subscriptionExpiresAt = null
+        await user.save()
+      }
+
       req.user = user
       next()
     } catch (jwtError) {

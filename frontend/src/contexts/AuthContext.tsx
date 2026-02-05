@@ -6,6 +6,7 @@ interface User {
   email: string
   role: "admin" | "user"
   isPaid: boolean
+  subscriptionExpiresAt?: string | null
   avatar?: string
   authProvider?: "local" | "google"
 }
@@ -18,6 +19,7 @@ interface AuthContextType {
   logout: () => void
   isAdmin: boolean
   isPaid: boolean
+  refreshSubscriptionStatus: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -26,6 +28,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+
+  // Check if subscription has expired locally
+  const checkSubscriptionExpiry = (currentUser: User | null) => {
+    if (!currentUser || !currentUser.isPaid || !currentUser.subscriptionExpiresAt) {
+      return currentUser
+    }
+
+    const expiryDate = new Date(currentUser.subscriptionExpiresAt)
+    if (new Date() > expiryDate) {
+      // Subscription has expired, update user state
+      return {
+        ...currentUser,
+        isPaid: false,
+        subscriptionExpiresAt: null,
+      }
+    }
+    return currentUser
+  }
 
   // Load token and user from localStorage on mount
   useEffect(() => {
@@ -36,9 +56,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (savedToken && savedToken !== "null" && savedUser && savedUser !== "null") {
       try {
         const parsedUser = JSON.parse(savedUser)
+        const userWithExpiryCheck = checkSubscriptionExpiry(parsedUser)
+        
         // Set both state variables together in a batch update
         setToken(savedToken)
-        setUser(parsedUser)
+        setUser(userWithExpiryCheck)
+        
+        // Update localStorage if subscription expired
+        if (userWithExpiryCheck.isPaid !== parsedUser.isPaid) {
+          localStorage.setItem("user", JSON.stringify(userWithExpiryCheck))
+        }
       } catch (err) {
         console.error("❌ Failed to parse stored user:", err)
         // Clear invalid localStorage
@@ -51,6 +78,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Always complete loading after reading localStorage
     // This happens synchronously before the component renders again
     setIsLoading(false)
+  }, [])
+
+  // Periodically check subscription expiry every 5 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setUser((currentUser) => {
+        if (!currentUser) return currentUser
+        const updatedUser = checkSubscriptionExpiry(currentUser)
+        
+        // Update localStorage if expired
+        if (updatedUser.isPaid !== currentUser.isPaid) {
+          localStorage.setItem("user", JSON.stringify(updatedUser))
+        }
+        return updatedUser
+      })
+    }, 5 * 60 * 1000) // Check every 5 minutes
+
+    return () => clearInterval(interval)
   }, [])
 
   const login = (token: string, user: User) => {
@@ -77,12 +122,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("isAdmin")
   }
 
+  const refreshSubscriptionStatus = () => {
+    setUser((currentUser) => {
+      if (!currentUser) return currentUser
+      const updatedUser = checkSubscriptionExpiry(currentUser)
+      if (updatedUser.isPaid !== currentUser.isPaid) {
+        localStorage.setItem("user", JSON.stringify(updatedUser))
+      }
+      return updatedUser
+    })
+  }
+
   const value = {
     user,
     token,
     isLoading,
     login,
     logout,
+    refreshSubscriptionStatus,
     isAdmin: user?.role === "admin",
     isPaid: user?.isPaid || false,
   }

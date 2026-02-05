@@ -801,5 +801,21 @@ export const subscriptionAPI = {
     }
     return response.json()
   },
+
+  getStatus: async (token: string) => {
+    const response = await fetch(`${API_BASE_URL}/subscription/status`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: "Failed to fetch subscription status" }))
+      const errorMessage = error.message || `Failed to fetch status (${response.status})`
+      throw new Error(errorMessage)
+    }
+    return response.json()
+  },
 }
 

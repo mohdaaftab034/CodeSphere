@@ -17,6 +17,29 @@ const SubscriptionPage = () => {
     const { user, login, logout, token, isLoading } = useAuth()
     const [loading, setLoading] = useState(false)
     const [planType, setPlanType] = useState<"monthly" | "yearly">("yearly")
+    const [subscriptionExpiryDate, setSubscriptionExpiryDate] = useState<string | null>(null)
+
+    useEffect(() => {
+        document.title = `Subscribe | ${websiteName}`
+    }, [websiteName])
+
+    // Fetch subscription status when component loads or user changes
+    useEffect(() => {
+        const fetchSubscriptionStatus = async () => {
+            if (user && token) {
+                try {
+                    const status = await subscriptionAPI.getStatus(token)
+                    if (status.subscriptionExpiresAt) {
+                        setSubscriptionExpiryDate(status.subscriptionExpiresAt)
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch subscription status:", err)
+                }
+            }
+        }
+
+        fetchSubscriptionStatus()
+    }, [user, token])
 
     useEffect(() => {
         document.title = `Subscribe | ${websiteName}`
@@ -300,7 +323,14 @@ const SubscriptionPage = () => {
                             ) : user?.isPaid ? (
                                 <>
                                     <ShieldCheck size={20} />
-                                    Active Pro Member
+                                    <div className="flex flex-col items-start gap-0">
+                                        <span>Active Pro Member</span>
+                                        {subscriptionExpiryDate && (
+                                            <span className="text-xs font-normal">
+                                                Expires: {new Date(subscriptionExpiryDate).toLocaleDateString()}
+                                            </span>
+                                        )}
+                                    </div>
                                 </>
                             ) : (
                                 <>

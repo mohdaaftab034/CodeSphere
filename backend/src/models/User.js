@@ -74,6 +74,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    subscriptionExpiresAt: {
+      type: Date,
+      default: null,
+    },
     razorpayOrderId: {
       type: String,
     },

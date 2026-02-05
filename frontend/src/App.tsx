@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
 import { useAuth, AuthProvider } from "./contexts/AuthContext"
+import { ProtectedRoute } from "./components/ProtectedRoute"
 import { Loader2 } from "lucide-react"
 import HomePage from "./pages/HomePage.tsx"
 import NotesPage from "./pages/NotesPage.tsx"
@@ -57,12 +58,12 @@ function AppRoutes() {
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/notes" element={<NotesPage />} />
-        <Route path="/notes/:chapterId" element={<ChapterTopicsPage />} />
-        <Route path="/notes/:chapterId/:topicSlug" element={<NoteDetailPage />} />
-        <Route path="/interview" element={<InterviewPage />} />
-        <Route path="/interview/:roleId" element={<RoleInterviewPage />} />
-        <Route path="/interview/question/:id" element={<SingleQuestionPage />} />
+        <Route path="/notes" element={<ProtectedRoute><NotesPage /></ProtectedRoute>} />
+        <Route path="/notes/:chapterId" element={<ProtectedRoute><ChapterTopicsPage /></ProtectedRoute>} />
+        <Route path="/notes/:chapterId/:topicSlug" element={<ProtectedRoute><NoteDetailPage /></ProtectedRoute>} />
+        <Route path="/interview" element={<ProtectedRoute><InterviewPage /></ProtectedRoute>} />
+        <Route path="/interview/:roleId" element={<ProtectedRoute><RoleInterviewPage /></ProtectedRoute>} />
+        <Route path="/interview/question/:id" element={<ProtectedRoute><SingleQuestionPage /></ProtectedRoute>} />
 
         <Route path="/roadmap" element={<RoadmapListingPage />} />
         <Route path="/roadmap/:id" element={<RoadmapDetailPage />} />
@@ -71,26 +72,26 @@ function AppRoutes() {
         <Route path="/about" element={<AboutUsPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
-        <Route path="/profile" element={<UserProfilePage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/handwritten-notes" element={<HandwrittenNotesListingPage />} />
-        <Route path="/handwritten-notes/:id" element={<HandwrittenNotePDFPreviewPage />} />
-        <Route path="/premium-handwritten-notes" element={<PremiumHandwrittenNotesPage />} />
+        <Route path="/profile" element={<ProtectedRoute><UserProfilePage /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/handwritten-notes" element={<ProtectedRoute><HandwrittenNotesListingPage /></ProtectedRoute>} />
+        <Route path="/handwritten-notes/:id" element={<ProtectedRoute><HandwrittenNotePDFPreviewPage /></ProtectedRoute>} />
+        <Route path="/premium-handwritten-notes" element={<ProtectedRoute><PremiumHandwrittenNotesPage /></ProtectedRoute>} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/feedback" element={<FeedbackPage />} />
         <Route path="/admin/login" element={<LoginPage />} />
-        <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-        <Route path="/admin/users" element={<UserManagementPage />} />
-        <Route path="/admin/notes/new" element={<NoteEditorPage />} />
-        <Route path="/admin/notes/:id/edit" element={<NoteEditorPage />} />
-        <Route path="/admin/notes" element={<NotesManagementPage />} />
-        <Route path="/admin/interviews/new" element={<AddInterviewQuestionPage />} />
-        <Route path="/admin/interviews" element={<InterviewManagementPage />} />
-        <Route path="/admin/pdfs" element={<PDFManagementPage />} />
-        <Route path="/admin/roadmaps" element={<RoadmapAdminPage />} />
-        <Route path="/admin/pages" element={<PagesManagementPage />} />
-        <Route path="/admin/settings" element={<SettingsPage />} />
+        <Route path="/admin/dashboard" element={<ProtectedRoute requiredRole="admin"><AdminDashboardPage /></ProtectedRoute>} />
+        <Route path="/admin/users" element={<ProtectedRoute requiredRole="admin"><UserManagementPage /></ProtectedRoute>} />
+        <Route path="/admin/notes/new" element={<ProtectedRoute requiredRole="admin"><NoteEditorPage /></ProtectedRoute>} />
+        <Route path="/admin/notes/:id/edit" element={<ProtectedRoute requiredRole="admin"><NoteEditorPage /></ProtectedRoute>} />
+        <Route path="/admin/notes" element={<ProtectedRoute requiredRole="admin"><NotesManagementPage /></ProtectedRoute>} />
+        <Route path="/admin/interviews/new" element={<ProtectedRoute requiredRole="admin"><AddInterviewQuestionPage /></ProtectedRoute>} />
+        <Route path="/admin/interviews" element={<ProtectedRoute requiredRole="admin"><InterviewManagementPage /></ProtectedRoute>} />
+        <Route path="/admin/pdfs" element={<ProtectedRoute requiredRole="admin"><PDFManagementPage /></ProtectedRoute>} />
+        <Route path="/admin/roadmaps" element={<ProtectedRoute requiredRole="admin"><RoadmapAdminPage /></ProtectedRoute>} />
+        <Route path="/admin/pages" element={<ProtectedRoute requiredRole="admin"><PagesManagementPage /></ProtectedRoute>} />
+        <Route path="/admin/settings" element={<ProtectedRoute requiredRole="admin"><SettingsPage /></ProtectedRoute>} />
       </Routes>
     </>
   )

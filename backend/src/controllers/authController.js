@@ -32,6 +32,15 @@ export const verifyOtp = async (req, res) => {
       isNewUser = timeDiff < 120; // Consider user new if created within last 2 minutes
     }
 
+    // Check if subscription has expired
+    let isPaid = user.isPaid;
+    if (isPaid && user.subscriptionExpiresAt && new Date() > new Date(user.subscriptionExpiresAt)) {
+      // Subscription has expired, update user record
+      user.isPaid = false;
+      user.subscriptionExpiresAt = null;
+      isPaid = false;
+    }
+
     // OTP is valid, clear it and issue token
     user.otp = undefined;
     user.otpExpiry = undefined;
@@ -63,6 +72,8 @@ export const verifyOtp = async (req, res) => {
         role: user.role || "user", // Ensure role is always set, default to "user"
         avatar: user.avatar,
         authProvider: user.authProvider || "local",
+        isPaid: isPaid,
+        subscriptionExpiresAt: user.subscriptionExpiresAt,
       },
     });
   } catch (error) {
@@ -188,6 +199,16 @@ export const googleCallback = async (req, res) => {
       isNewUser = true
     }
 
+    // Check if subscription has expired
+    let isPaid = user.isPaid;
+    if (isPaid && user.subscriptionExpiresAt && new Date() > new Date(user.subscriptionExpiresAt)) {
+      // Subscription has expired, update user record
+      user.isPaid = false;
+      user.subscriptionExpiresAt = null;
+      isPaid = false;
+      await user.save();
+    }
+
     // ALWAYS send welcome email for new users or login notification for existing users
     // This ensures users always receive an email notification when they sign up or log in
     // We send this asynchronously so it doesn't block the OAuth redirect
@@ -233,6 +254,8 @@ export const googleCallback = async (req, res) => {
       role: user.role || "user", // Ensure role is always set, default to "user"
       avatar: user.avatar,
       authProvider: user.authProvider || "google",
+      isPaid: isPaid,
+      subscriptionExpiresAt: user.subscriptionExpiresAt,
     }))}`)
   } catch (error) {
     const frontendURL = process.env.FRONTEND_URL || "http://localhost:5173"
