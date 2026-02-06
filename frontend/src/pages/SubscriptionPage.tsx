@@ -16,7 +16,7 @@ const SubscriptionPage = () => {
     const websiteName = import.meta.env.VITE_WEBSITE_NAME
     const { user, login, logout, token, isLoading } = useAuth()
     const [loading, setLoading] = useState(false)
-    const [planType, setPlanType] = useState<"monthly" | "yearly">("yearly")
+    const [planType] = useState<"monthly" | "yearly">("monthly")
     const [subscriptionExpiryDate, setSubscriptionExpiryDate] = useState<string | null>(null)
 
     useEffect(() => {
@@ -176,38 +176,8 @@ const SubscriptionPage = () => {
                         Level up your <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600">coding game</span>
                     </motion.h1>
 
-                    {/* Plan Toggle */}
-                    <div className="flex flex-col items-center mt-8">
-                        <div className="bg-white p-1 rounded-2xl shadow-sm border border-slate-200 flex items-center relative gap-1">
-                            <button
-                                onClick={() => setPlanType("monthly")}
-                                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all z-10 ${planType === 'monthly' ? 'text-indigo-600' : 'text-slate-500'}`}
-                            >
-                                Monthly
-                            </button>
-                            <button
-                                onClick={() => setPlanType("yearly")}
-                                className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all z-10 flex items-center gap-2 ${planType === 'yearly' ? 'text-indigo-600' : 'text-slate-500'}`}
-                            >
-                                Yearly
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded-md ${planType === 'yearly' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
-                                    Best Value
-                                </span>
-                            </button>
-
-                            {/* Animated Background */}
-                            <motion.div
-                                className="absolute bg-indigo-50 rounded-xl"
-                                layoutId="activePlan"
-                                initial={false}
-                                animate={{
-                                    x: planType === 'monthly' ? 4 : 100,
-                                    width: planType === 'monthly' ? 95 : 125,
-                                    height: 'calc(100% - 8px)'
-                                }}
-                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            />
-                        </div>
+                    <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 text-indigo-700 text-sm font-semibold">
+                        Monthly Plan
                     </div>
                 </div>
 
@@ -250,30 +220,16 @@ const SubscriptionPage = () => {
                         transition={{ delay: 0.2 }}
                         className="bg-indigo-600 rounded-3xl p-8 text-white shadow-xl shadow-indigo-200 flex flex-col justify-between overflow-hidden relative"
                     >
-                        {/* Shimmer Effect */}
-                        {planType === 'yearly' && (
-                            <motion.div
-                                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12 translate-x-full"
-                                animate={{ x: ['-200%', '200%'] }}
-                                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                            />
-                        )}
-
                         <div>
                             <div className="flex justify-between items-start mb-8 relative">
                                 <div>
                                     <h3 className="text-xl font-bold mb-1 text-indigo-100 italic">
-                                        {planType === 'monthly' ? 'Power Plan' : 'Legend Plan'}
+                                        Power Plan
                                     </h3>
                                     <p className="text-indigo-200 text-sm italic">
-                                        {planType === 'monthly' ? 'Perfect for quick prep' : 'The ultimate learning fuel'}
+                                        Perfect for quick prep
                                     </p>
                                 </div>
-                                {planType === 'yearly' && (
-                                    <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap">
-                                        SAVE 45%
-                                    </div>
-                                )}
                             </div>
 
                             <div className="flex items-baseline gap-2 mb-8 relative">
@@ -283,21 +239,16 @@ const SubscriptionPage = () => {
                                     animate={{ opacity: 1, scale: 1 }}
                                     className="text-5xl font-extrabold"
                                 >
-                                    ₹{planType === 'monthly' ? '299' : '1899'}
+                                    ₹199
                                 </motion.span>
-                                <span className="text-indigo-200 italic">/{planType === 'monthly' ? 'month' : 'year'}</span>
-                                {planType === 'yearly' && (
-                                    <span className="text-indigo-300 line-through text-lg ml-2 italic">₹3499</span>
-                                )}
-                                {planType === 'monthly' && (
-                                    <span className="text-indigo-300 line-through text-lg ml-2 italic">₹399</span>
-                                )}
+                                <span className="text-indigo-200 italic">/month</span>
+                                <span className="text-indigo-300 line-through text-lg ml-2 italic">₹399</span>
                             </div>
 
                             <ul className="space-y-4 mb-8 relative">
                                 <li className="flex items-center gap-3 text-indigo-100 italic">
                                     <Check size={18} className="text-indigo-300" />
-                                    <span>Full {planType === 'monthly' ? 'Month' : 'Year'} Access</span>
+                                    <span>Full Month Access</span>
                                 </li>
                                 <li className="flex items-center gap-3 text-indigo-100 italic">
                                     <Check size={18} className="text-indigo-300" />
@@ -335,7 +286,7 @@ const SubscriptionPage = () => {
                             ) : (
                                 <>
                                     <CreditCard size={20} />
-                                    Unlock {planType === 'monthly' ? 'Monthly' : 'Yearly'} Access
+                                    Unlock Monthly Access
                                     <ChevronRight size={20} />
                                 </>
                             )}
