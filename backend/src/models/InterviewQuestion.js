@@ -45,16 +45,16 @@ const interviewQuestionSchema = new mongoose.Schema(
       enum: ["Beginner", "Intermediate", "Advanced"],
       default: "Intermediate",
     },
+    subject: {
+      type: String,
+      trim: true,
+      // Optional field for backward compatibility
+    },
     roles: [
       {
         type: String,
-        enum: [
-          "Software Developer",
-          "Web Developer",
-          "Frontend Developer",
-          "Backend Developer",
-          "Full Stack Developer",
-        ],
+        trim: true,
+        // Removed enum to allow custom role names
       },
     ],
     topics: [String],
@@ -82,5 +82,6 @@ const interviewQuestionSchema = new mongoose.Schema(
 // Index for role-based filtering
 interviewQuestionSchema.index({ roles: 1 })
 interviewQuestionSchema.index({ difficulty: 1 })
+interviewQuestionSchema.index({ subject: 1 })
 
 export default mongoose.model("InterviewQuestion", interviewQuestionSchema)

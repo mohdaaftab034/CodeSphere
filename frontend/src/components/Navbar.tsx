@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu,
@@ -35,6 +36,7 @@ export function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [roadmaps, setRoadmaps] = useState<any[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
   const iconMap: Record<string, any> = { Code2, BookOpen, Briefcase, Users, Layers, Layout, Server, Cloud, Cpu };
 
   const fetchChapters = useCallback(() => fetchChaptersConfig(), []);
@@ -85,6 +87,22 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileMenuOpen]);
+
+  useEffect(() => {
     const loadRoadmaps = async () => {
       try {
         const data = await roadmapsAPI.getAll("published");
@@ -99,25 +117,34 @@ export function Navbar() {
 
   // Animation variants
   const mobileMenuVariants = {
-    closed: { height: 0, opacity: 0 },
+    closed: { x: "100%", transition: { type: "tween", duration: 0.25 } },
     open: {
-      height: "auto",
-      opacity: 1,
-      transition: { duration: 0.3, staggerChildren: 0.1, delayChildren: 0.1 },
+      x: 0,
+      transition: { type: "tween", duration: 0.3, staggerChildren: 0.06, delayChildren: 0.08 },
     },
   };
 
+  const mobileOverlayVariants = {
+    closed: { opacity: 0, transition: { duration: 0.2 } },
+    open: { opacity: 1, transition: { duration: 0.25 } },
+  };
+
   const mobileItemVariants = {
-    closed: { x: -20, opacity: 0 },
+    closed: { x: 20, opacity: 0 },
     open: { x: 0, opacity: 1 },
   };
 
-  return (
+  if (!isMounted) {
+    return null;
+  }
+
+  const headerContent = (
+    <>
     <motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 100, damping: 20 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
+      className={`fixed top-0 left-0 right-0 z-[999] transition-all duration-300 ${scrolled
         ? "bg-background/60 backdrop-blur-2xl border-b border-border/40 shadow-[0_4px_30px_rgba(0,0,0,0.03)]"
         : "bg-transparent border-b border-transparent"
         }`}
@@ -542,146 +569,160 @@ export function Navbar() {
         </button>
       </nav>
 
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
+    </motion.header>
+
+    {/* Mobile Menu */}
+    <AnimatePresence>
+      {mobileMenuOpen && (
+        <>
+          <motion.div
+            variants={mobileOverlayVariants}
+            initial="closed"
+            animate="open"
+            exit="closed"
+            className="md:hidden fixed inset-0 bg-black/40 backdrop-blur-[1px] z-[1000]"
+            onClick={() => setMobileMenuOpen(false)}
+          />
           <motion.div
             variants={mobileMenuVariants}
             initial="closed"
             animate="open"
             exit="closed"
-            className="md:hidden bg-background border-b border-border overflow-hidden max-h-[calc(100vh-64px)] overflow-y-auto"
+            className="md:hidden fixed top-0 right-0 h-full w-[82vw] max-w-sm bg-background border-l border-border shadow-2xl z-[1010] overflow-y-auto"
           >
-            <div className="px-4 py-6 space-y-2">
-              {navItems.map((item) => (
-                <div key={item.label}>
-                  <motion.div variants={mobileItemVariants}>
-                    <Link
-                      to={item.href}
-                      className="flex items-center justify-between px-4 py-3 text-sm font-medium hover:bg-secondary rounded-xl transition-colors"
-                      onClick={() =>
-                        !item.hasDropdown && setMobileMenuOpen(false)
-                      }
-                    >
-                      {item.label}
-                      {item.hasDropdown && (
-                        <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                      )}
-                    </Link>
-                  </motion.div>
+            <div className="px-4 pt-24 pb-6 space-y-2">
+            {navItems.map((item) => (
+              <div key={item.label}>
+                <motion.div variants={mobileItemVariants}>
+                  <Link
+                    to={item.href}
+                    className="flex items-center justify-between px-4 py-3 text-sm font-medium hover:bg-secondary rounded-xl transition-colors"
+                    onClick={() =>
+                      !item.hasDropdown && setMobileMenuOpen(false)
+                    }
+                  >
+                    {item.label}
+                    {item.hasDropdown && (
+                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </Link>
+                </motion.div>
 
-                  {/* Notes Dropdown Items */}
-                  {item.hasDropdown && item.label === "Notes" && (
-                    <div className="pl-4 pr-2 mt-1 space-y-1 border-l-2 border-border/50 ml-4">
-                      {notesDropdownItems.map((subItem: any) => (
-                        <Link
-                          key={subItem.label}
-                          to={subItem.href}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded-lg transition-colors"
-                        >
-                          <subItem.icon className={`w-4 h-4 ${subItem.color}`} />
-                          {subItem.label}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Interview Roles Dropdown */}
-                  {item.hasDropdown && item.label === "Interview" && (
-                    <div className="pl-4 pr-2 mt-1 space-y-1 border-l-2 border-border/50 ml-4">
-                      {interviewRoles.map((role) => (
-                        <Link
-                          key={role.id}
-                          to={`/interview/${role.id}`}
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded-lg transition-colors"
-                        >
-                          <role.icon className="w-4 h-4" />
-                          {role.name}
-                        </Link>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              <motion.div
-                variants={mobileItemVariants}
-                className="pt-4 mt-4 border-t border-border space-y-2"
-              >
-                {!user ? (
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="w-full justify-center"
-                    >
+                {/* Notes Dropdown Items */}
+                {item.hasDropdown && item.label === "Notes" && (
+                  <div className="pl-4 pr-2 mt-1 space-y-1 border-l-2 border-border/50 ml-4">
+                    {notesDropdownItems.map((subItem: any) => (
                       <Link
-                        to="/login"
+                        key={subItem.label}
+                        to={subItem.href}
                         onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded-lg transition-colors"
                       >
-                        Log In
+                        <subItem.icon className={`w-4 h-4 ${subItem.color}`} />
+                        {subItem.label}
                       </Link>
-                    </Button>
-                    <Button asChild className="w-full justify-center">
-                      <Link
-                        to="/notes"
-                        onClick={() => setMobileMenuOpen(false)}
-                      >
-                        Start
-                      </Link>
-                    </Button>
+                    ))}
                   </div>
-                ) : (
-                  <>
-                    {isAdmin ? (
+                )}
+
+                {/* Interview Roles Dropdown */}
+                {item.hasDropdown && item.label === "Interview" && (
+                  <div className="pl-4 pr-2 mt-1 space-y-1 border-l-2 border-border/50 ml-4">
+                    {interviewRoles.map((role) => (
                       <Link
-                        to="/admin/dashboard"
+                        key={role.id}
+                        to={`/interview/${role.id}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-secondary/50 rounded-lg transition-colors"
+                      >
+                        <role.icon className="w-4 h-4" />
+                        {role.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            <motion.div
+              variants={mobileItemVariants}
+              className="pt-4 mt-4 border-t border-border space-y-2"
+            >
+              {!user ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="w-full justify-center"
+                  >
+                    <Link
+                      to="/login"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Log In
+                    </Link>
+                  </Button>
+                  <Button asChild className="w-full justify-center">
+                    <Link
+                      to="/notes"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Start
+                    </Link>
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  {isAdmin ? (
+                    <Link
+                      to="/admin/dashboard"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-3 text-sm font-medium hover:bg-secondary rounded-xl transition-colors"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Admin Dashboard
+                    </Link>
+                  ) : (
+                    <>
+                      <Link
+                        to="/profile"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-3 text-sm font-medium hover:bg-secondary rounded-xl transition-colors"
+                      >
+                        <Users className="w-4 h-4" />
+                        My Profile
+                      </Link>
+                      <Link
+                        to="/dashboard"
                         onClick={() => setMobileMenuOpen(false)}
                         className="flex items-center gap-2 px-4 py-3 text-sm font-medium hover:bg-secondary rounded-xl transition-colors"
                       >
                         <Settings className="w-4 h-4" />
-                        Admin Dashboard
+                        Dashboard
                       </Link>
-                    ) : (
-                      <>
-                        <Link
-                          to="/profile"
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center gap-2 px-4 py-3 text-sm font-medium hover:bg-secondary rounded-xl transition-colors"
-                        >
-                          <Users className="w-4 h-4" />
-                          My Profile
-                        </Link>
-                        <Link
-                          to="/dashboard"
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center gap-2 px-4 py-3 text-sm font-medium hover:bg-secondary rounded-xl transition-colors"
-                        >
-                          <Settings className="w-4 h-4" />
-                          Dashboard
-                        </Link>
-                      </>
-                    )}
-                    <Button
-                      onClick={() => {
-                        logout();
-                        setMobileMenuOpen(false);
-                        window.location.href = "/login";
-                      }}
-                      variant="ghost"
-                      className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
-                    >
-                      <X className="w-4 h-4 mr-2" /> Logout
-                    </Button>
-                  </>
-                )}
-              </motion.div>
+                    </>
+                  )}
+                  <Button
+                    onClick={() => {
+                      logout();
+                      setMobileMenuOpen(false);
+                      window.location.href = "/login";
+                    }}
+                    variant="ghost"
+                    className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
+                  >
+                    <X className="w-4 h-4 mr-2" /> Logout
+                  </Button>
+                </>
+              )}
+            </motion.div>
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.header>
+        </>
+      )}
+    </AnimatePresence>
+    </>
   );
+
+  return createPortal(headerContent, document.body);
 }

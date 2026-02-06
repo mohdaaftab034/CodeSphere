@@ -65,21 +65,21 @@ export default function ContactPage() {
 
   const contactInfo = [
     {
-      icon: Mail,
-      label: "Email",
-      value: "support@codingnotes.dev",
-      action: () => handleCopy("support@codingnotes.dev", "Email"),
+      icon: Phone,
+      label: "Mobile",
+      value: "+91 8630742962",
+      action: () => handleCopy("+91 8630742962", "Mobile"),
     },
     {
-      icon: Phone,
-      label: "Phone",
-      value: "+1 (555) 123-4567",
-      action: () => handleCopy("+1 (555) 123-4567", "Phone"),
+      icon: Mail,
+      label: "Email",
+      value: "codespheres@gmail.com",
+      action: () => handleCopy("codespheres@gmail.com", "Email"),
     },
     {
       icon: MapPin,
       label: "Location",
-      value: "San Francisco, CA",
+      value: "Lucknow",
       action: null,
     },
   ];
@@ -95,14 +95,14 @@ export default function ContactPage() {
         <div className="absolute right-0 bottom-0 -z-10 h-[310px] w-[310px] rounded-full bg-blue-500/20 opacity-20 blur-[100px]"></div>
       </div>
 
-      <div className="pt-32 pb-24 px-4 relative">
+      <div className="pt-24 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6 relative">
         <div className="max-w-6xl mx-auto">
           {/* Header Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="text-center mb-16"
+            className="text-center mb-12 sm:mb-16"
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/50 border border-border/50 text-muted-foreground text-xs font-medium mb-6">
               <span className="relative flex h-2 w-2">
@@ -112,18 +112,18 @@ export default function ContactPage() {
               Response time: &lt; 24 hours
             </div>
             <h1
-              className="text-4xl sm:text-6xl font-bold text-foreground mb-6 tracking-tight"
+              className="text-3xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4 sm:mb-6 tracking-tight"
               style={{ fontFamily: "var(--font-cal-sans)" }}
             >
               Let's Start a Conversation
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Have a question about our notes, finding a bug, or just want to
               say hi? We're here to help you ace your interviews.
             </p>
           </motion.div>
 
-          <div className="grid lg:grid-cols-12 gap-12">
+          <div className="grid lg:grid-cols-12 gap-8 md:gap-10 lg:gap-12">
             {/* Left Column: Contact Info */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -131,7 +131,7 @@ export default function ContactPage() {
               transition={{ duration: 0.5, delay: 0.1 }}
               className="lg:col-span-5 space-y-6"
             >
-              <div className="p-8 rounded-3xl bg-card/30 border border-border/50 backdrop-blur-sm shadow-sm">
+              <div className="p-5 sm:p-6 md:p-8 rounded-3xl bg-card/30 border border-border/50 backdrop-blur-sm shadow-sm">
                 <h3 className="text-xl font-semibold mb-6">
                   Contact Information
                 </h3>
@@ -149,8 +149,8 @@ export default function ContactPage() {
                         <div className="text-sm font-medium text-muted-foreground mb-1">
                           {item.label}
                         </div>
-                        <div className="text-foreground font-medium flex items-center justify-between">
-                          {item.value}
+                        <div className="text-foreground font-medium flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <span className="break-words">{item.value}</span>
                           {item.action && (
                             <span className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                               {copiedField === item.label ? (
@@ -169,7 +169,7 @@ export default function ContactPage() {
               </div>
 
               {/* FAQ Teaser Card */}
-              <div className="p-8 rounded-3xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/10">
+              <div className="p-5 sm:p-6 md:p-8 rounded-3xl bg-gradient-to-br from-primary/10 to-transparent border border-primary/10">
                 <div className="flex items-start gap-4">
                   <Sparkles className="w-6 h-6 text-primary mt-1" />
                   <div>
@@ -181,7 +181,7 @@ export default function ContactPage() {
                       answered in our help center.
                     </p>
                     <Link
-                      to="/faq"
+                      to="/about"
                       className="text-sm font-medium text-primary hover:underline flex items-center gap-1"
                     >
                       Visit Help Center <ArrowRight className="w-3 h-3" />
@@ -199,7 +199,7 @@ export default function ContactPage() {
               className="lg:col-span-7"
             >
               <div className="relative h-full">
-                <div className="h-full p-8 md:p-10 rounded-3xl bg-card border border-border shadow-2xl shadow-primary/5 flex flex-col relative overflow-hidden">
+                <div className="h-full p-5 sm:p-6 md:p-10 rounded-3xl bg-card border border-border shadow-2xl shadow-primary/5 flex flex-col relative overflow-hidden">
                   {/* Top Gradient Line */}
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/0 via-primary to-primary/0 opacity-50" />
 
@@ -221,7 +221,7 @@ export default function ContactPage() {
                         Please sign in to send a support message. This helps us
                         track your request better.
                       </p>
-                      <div className="flex gap-3">
+                      <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                         <Button asChild>
                           <Link to="/login">Sign In</Link>
                         </Button>
@@ -292,7 +292,7 @@ export default function ContactPage() {
                           </label>
                           <textarea
                             id="message"
-                            rows={6}
+                            rows={5}
                             value={message}
                             onChange={(e) => setMessage(e.target.value)}
                             required

@@ -1,0 +1,52 @@
+[
+    {
+        "id": "system-design",
+        "name": "System Design",
+        "description": "Architecture, scalability, and distributed systems"
+    },
+    {
+        "id": "nodejs",
+        "name": "Node.js",
+        "description": "Server-side JavaScript runtime and frameworks"
+    },
+    {
+        "id": "dsa",
+        "name": "Data Structures & Algorithms",
+        "description": "Core computer science fundamentals"
+    },
+    {
+        "id": "javascript",
+        "name": "JavaScript",
+        "description": "Core JavaScript language concepts"
+    },
+    {
+        "id": "react",
+        "name": "React",
+        "description": "React library and ecosystem"
+    },
+    {
+        "id": "database-design",
+        "name": "Database Design",
+        "description": "SQL, NoSQL, and database optimization"
+    },
+    {
+        "id": "api-design",
+        "name": "API Design",
+        "description": "RESTful APIs, GraphQL, and API best practices"
+    },
+    {
+        "id": "web-fundamentals",
+        "name": "Web Fundamentals",
+        "description": "HTML, CSS, HTTP, and browser concepts"
+    },
+    {
+        "id": "performance",
+        "name": "Performance Optimization",
+        "description": "Frontend and backend performance tuning"
+    },
+    {
+        "id": "security",
+        "name": "Security",
+        "description": "Web security, authentication, and authorization"
+    }
+]

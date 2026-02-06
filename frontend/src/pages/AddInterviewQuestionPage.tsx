@@ -17,14 +17,7 @@ import AdminLayout from "../components/AdminLayout"
 import { InterviewQuestionEditor } from "../components/InterviewQuestionEditor"
 import { InterviewQuestionRenderer } from "../components/InterviewQuestionRenderer"
 import { interviewAPI } from "../lib/api"
-
-const roleOptions = [
-  "Software Developer",
-  "Web Developer",
-  "Frontend Developer",
-  "Backend Developer",
-  "Full Stack Developer",
-]
+import interviewSubjects from "../lib/interview-subjects.json"
 
 const topicOptions = [
   "JavaScript",
@@ -50,18 +43,20 @@ export default function AddInterviewQuestionPage() {
     description: "",
     content: "",
     difficulty: "Intermediate" as Difficulty,
+    subject: (interviewSubjects[0] || "") as string,
     topics: ["JavaScript", "React"] as string[],
   })
 
-  const [selectedRoles, setSelectedRoles] = useState<string[]>([
-    "Software Developer",
-    "Frontend Developer",
-  ])
+  const [rolesInput, setRolesInput] = useState("Software Developer, Frontend Developer")
+  const [selectedRoles, setSelectedRoles] = useState<string[]>(["Software Developer", "Frontend Developer"])
 
-  const toggleRole = (role: string) => {
-    setSelectedRoles((prev) =>
-      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
-    )
+  const parseRolesInput = (value: string) => {
+    const parsed = value
+      .split(",")
+      .map((role) => role.trim())
+      .filter(Boolean)
+
+    return Array.from(new Set(parsed))
   }
 
   const toggleTopic = (topic: string) => {
@@ -102,6 +97,7 @@ export default function AddInterviewQuestionPage() {
         content: formData.content,
         answer: formData.content, // Backend requires answer field
         difficulty: formData.difficulty,
+        subject: formData.subject,
         roles: selectedRoles,
         topics: formData.topics,
       }
@@ -176,7 +172,7 @@ export default function AddInterviewQuestionPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-foreground">Question Basics</h3>
-                    <p className="text-sm text-muted-foreground">Title, description, difficulty, and topics.</p>
+                    <p className="text-sm text-muted-foreground">Title, description, difficulty, subject, and tags.</p>
                   </div>
                   <Badge variant="secondary" className="gap-1">
                     <Sparkles className="w-4 h-4" /> Fresh Entry
@@ -224,7 +220,24 @@ export default function AddInterviewQuestionPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Topics / Tech Tags</Label>
+                    <Label>Subject</Label>
+                    <select
+                      value={formData.subject}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      className="w-full h-11 px-3 rounded-lg border border-border bg-background text-foreground"
+                    >
+                      {interviewSubjects.map((subject) => (
+                        <option key={subject} value={subject}>
+                          {subject}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Tags / Tech</Label>
                     <div className="flex flex-wrap gap-2">
                       {topicOptions.map((topic) => (
                         <button
@@ -266,19 +279,19 @@ export default function AddInterviewQuestionPage() {
                   <Badge variant="outline">Multi-role</Badge>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  {roleOptions.map((role) => (
-                    <button
-                      key={role}
-                      onClick={() => toggleRole(role)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${selectedRoles.includes(role)
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-muted text-muted-foreground border-border hover:text-foreground"
-                        }`}
-                    >
-                      {role}
-                    </button>
-                  ))}
+                <div className="space-y-2">
+                  <Label htmlFor="roles">Roles (comma-separated)</Label>
+                  <Input
+                    id="roles"
+                    placeholder="e.g., Backend Developer, Node.js Developer, SDE-2"
+                    value={rolesInput}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setRolesInput(value)
+                      setSelectedRoles(parseRolesInput(value))
+                    }}
+                  />
+                  <p className="text-xs text-muted-foreground">Type multiple roles and separate them with commas.</p>
                 </div>
 
                 {selectedRoles.length ? (
@@ -339,8 +352,13 @@ export default function AddInterviewQuestionPage() {
                     )}
                   </div>
 
-                  {(selectedRoles.length > 0 || formData.topics.length > 0) && (
+                  {(selectedRoles.length > 0 || formData.topics.length > 0 || formData.subject) && (
                     <div className="flex flex-wrap gap-2 pt-2">
+                      {formData.subject && (
+                        <Badge variant="outline" className="text-xs">
+                          {formData.subject}
+                        </Badge>
+                      )}
                       {selectedRoles.map((role) => (
                         <Badge key={role} variant="secondary" className="text-xs">
                           {role}

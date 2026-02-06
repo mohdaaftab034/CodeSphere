@@ -6,30 +6,48 @@ export const verifyOtp = async (req, res) => {
       return res.status(400).json({ message: "userId and otp are required" });
     }
 
-    const user = await User.findById(userId).select("+otp +otpExpiry");
+    let user = await User.findById(userId).select("+otp +otpExpiry");
+    let pendingUser = null;
+    let isNewUser = false;
+
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      pendingUser = await PendingUser.findById(userId).select("+otp +otpExpiry +password");
+      if (!pendingUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
     }
 
-    if (!user.otp || !user.otpExpiry) {
+    const otpRecord = user || pendingUser;
+
+    if (!otpRecord.otp || !otpRecord.otpExpiry) {
       return res.status(400).json({ message: "No OTP found. Please login again." });
     }
 
-    if (user.otp !== otp) {
+    if (otpRecord.otp !== otp) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
-    if (user.otpExpiry < new Date()) {
+    if (otpRecord.otpExpiry < new Date()) {
       return res.status(400).json({ message: "OTP expired. Please login again." });
     }
 
-    // Check if this is a new user (created within the last 2 minutes)
-    let isNewUser = false;
-    if (user.createdAt) {
-      const userCreatedAt = new Date(user.createdAt);
-      const now = new Date();
-      const timeDiff = (now - userCreatedAt) / 1000; // difference in seconds
-      isNewUser = timeDiff < 120; // Consider user new if created within last 2 minutes
+    if (pendingUser) {
+      const existingUser = await User.findOne({ email: pendingUser.email });
+      if (existingUser) {
+        await PendingUser.findByIdAndDelete(pendingUser._id);
+        return res.status(409).json({ message: "Account already exists. Please login." });
+      }
+
+      user = await User.create({
+        name: pendingUser.name,
+        email: pendingUser.email,
+        password: pendingUser.password,
+        role: pendingUser.role || "user",
+        authProvider: "local",
+      });
+
+      await PendingUser.findByIdAndDelete(pendingUser._id);
+      isNewUser = true;
     }
 
     // Check if subscription has expired
@@ -81,6 +99,7 @@ export const verifyOtp = async (req, res) => {
   }
 };
 import User from "../models/User.js"
+import PendingUser from "../models/PendingUser.js"
 import bcrypt from "bcryptjs"
 import { generateToken } from "../utils/helpers.js"
 import { validateLogin } from "../middleware/validation.js"
@@ -103,18 +122,37 @@ export const login = async (req, res) => {
     // Check if user exists
     let user = await User.findOne({ email }).select("+password")
 
-    let isNewUser = false;
+    let isNewUser = false
+    let otpTargetId = null
+
     if (!user) {
-      // Create regular user if doesn't exist
       const hashedPassword = await bcrypt.hash(password, 10)
-      user = await User.create({
-        name: email.split("@")[0],
-        email,
-        password: hashedPassword,
-        role: "user",
-        authProvider: "local",
-      })
-      isNewUser = true;
+      const otp = generateOtp()
+      const otpExpiry = new Date(Date.now() + 10 * 60 * 1000)
+
+      const pendingUser = await PendingUser.findOneAndUpdate(
+        { email },
+        {
+          name: email.split("@")[0],
+          email,
+          password: hashedPassword,
+          role: "user",
+          authProvider: "local",
+          otp,
+          otpExpiry,
+        },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      ).select("+otp +otpExpiry")
+
+      // Send OTP email
+      try {
+        await sendOtpEmail(pendingUser.email, otp)
+      } catch (emailError) {
+        console.error("Failed to send OTP email:", emailError.message)
+      }
+
+      isNewUser = true
+      otpTargetId = pendingUser._id
     } else {
       // Check if user is OAuth user
       if (user.authProvider === "google" && !user.password) {
@@ -128,28 +166,30 @@ export const login = async (req, res) => {
       if (!isPasswordCorrect) {
         return res.status(401).json({ message: "Invalid email or password" })
       }
-    }
 
-    // Generate OTP and expiry
-    const otp = generateOtp();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      // Generate OTP and expiry
+      const otp = generateOtp()
+      const otpExpiry = new Date(Date.now() + 10 * 60 * 1000)
 
-    user.otp = otp;
-    user.otpExpiry = otpExpiry;
-    await user.save();
+      user.otp = otp
+      user.otpExpiry = otpExpiry
+      await user.save()
 
-    // Send OTP email
-    try {
-      await sendOtpEmail(user.email, otp);
-    } catch (emailError) {
-      console.error("Failed to send OTP email:", emailError.message);
+      // Send OTP email
+      try {
+        await sendOtpEmail(user.email, otp)
+      } catch (emailError) {
+        console.error("Failed to send OTP email:", emailError.message)
+      }
+
+      otpTargetId = user._id
     }
 
     res.status(200).json({
       success: true,
       message: "OTP sent to your email. Please verify to complete login.",
-      userId: user._id,
-      email: user.email,
+      userId: otpTargetId,
+      email: email,
       isNewUser,
     });
   } catch (error) {

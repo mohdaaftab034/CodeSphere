@@ -30,16 +30,9 @@ export const validateInterviewQuestion = (data) => {
     difficulty: Joi.string()
       .valid("Beginner", "Intermediate", "Advanced")
       .default("Intermediate"),
+    subject: Joi.string().trim(), // Optional subject field
     roles: Joi.array()
-      .items(
-        Joi.string().valid(
-          "Software Developer",
-          "Web Developer",
-          "Frontend Developer",
-          "Backend Developer",
-          "Full Stack Developer"
-        )
-      )
+      .items(Joi.string().trim()) // Allow any string for custom role names
       .required(),
     topics: Joi.array().items(Joi.string()),
     codeBlocks: Joi.array().items(

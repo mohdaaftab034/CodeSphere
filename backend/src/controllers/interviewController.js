@@ -2,6 +2,12 @@ import InterviewQuestion from "../models/InterviewQuestion.js"
 import { validateInterviewQuestion } from "../middleware/validation.js"
 import { createBasePDF, renderMarkdownToPDF, finalizePDF } from "../utils/pdfHelpers.js"
 import { sendInterviewQuestionNotification } from "../utils/notificationService.js"
+import fs from "fs"
+import path from "path"
+import { fileURLToPath } from "url"
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const websiteName = process.env.WEBSITE_NAME || "CodeSphere"
 const frontendUrl = process.env.FRONTEND_URL || ""
@@ -90,7 +96,7 @@ export const deleteInterviewQuestion = async (req, res) => {
 // User: Get questions by role
 export const getQuestionsByRole = async (req, res) => {
   try {
-    const { role, difficulty } = req.query
+    const { role, difficulty, subject } = req.query
 
     let filter = {}
 
@@ -102,6 +108,10 @@ export const getQuestionsByRole = async (req, res) => {
 
     if (difficulty) {
       filter.difficulty = difficulty
+    }
+
+    if (subject) {
+      filter.subject = subject
     }
 
     const questions = await InterviewQuestion.find(filter)
@@ -119,7 +129,22 @@ export const getQuestionsByRole = async (req, res) => {
 // User: Get all questions
 export const getAllQuestions = async (req, res) => {
   try {
-    const questions = await InterviewQuestion.find()
+    const { subject, difficulty, role } = req.query
+    let filter = {}
+
+    if (subject) {
+      filter.subject = subject
+    }
+
+    if (difficulty) {
+      filter.difficulty = difficulty
+    }
+
+    if (role) {
+      filter.roles = { $regex: new RegExp(`^${role.replace(/-/g, " ")}$`, "i") }
+    }
+
+    const questions = await InterviewQuestion.find(filter)
 
     res.status(200).json({
       success: true,
@@ -296,6 +321,22 @@ export const triggerDailyQuestion = async (req, res) => {
         error: result.error,
       })
     }
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+// User: Get available subjects
+export const getSubjects = async (req, res) => {
+  try {
+    const subjectsPath = path.join(__dirname, "../config/subjects.json")
+    const subjectsData = fs.readFileSync(subjectsPath, "utf-8")
+    const subjects = JSON.parse(subjectsData)
+
+    res.status(200).json({
+      success: true,
+      subjects,
+    })
   } catch (error) {
     res.status(500).json({ message: error.message })
   }

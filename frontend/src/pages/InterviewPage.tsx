@@ -17,6 +17,7 @@ import { useQuery } from "../hooks/useQuery"
 import { interviewAPI } from "../lib/api"
 import { InterviewQuestionRenderer } from "../components/InterviewQuestionRenderer"
 import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet"
+import interviewSubjects from "../lib/interview-subjects.json"
 
 const difficultyColors: Record<string, string> = {
   beginner: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
@@ -37,7 +38,10 @@ export default function InterviewPage() {
   const [expanded, setExpanded] = useState<string[]>([])
   const [search, setSearch] = useState("")
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([])
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([])
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([])
   const [selectedTopics, setSelectedTopics] = useState<string[]>([])
+  const [sortBy, setSortBy] = useState("newest")
   const [currentPage, setCurrentPage] = useState(1)
 
   // Fetch questions from backend
@@ -46,11 +50,32 @@ export default function InterviewPage() {
 
   const allQuestions = questionsResponse?.data || questionsResponse?.questions || []
 
-  // Extract unique topics
+  const availableSubjects = useMemo(() => {
+    const subjects = new Set<string>(interviewSubjects)
+    allQuestions.forEach((q: any) => {
+      const subject = q.subject || q.category
+      if (subject) subjects.add(subject)
+    })
+    return Array.from(subjects).sort()
+  }, [allQuestions])
+
+  const availableRoles = useMemo(() => {
+    const roles = new Set<string>()
+    allQuestions.forEach((q: any) => {
+      const questionRoles = Array.isArray(q.roles) ? q.roles : []
+      questionRoles.forEach((role: string) => roles.add(role))
+    })
+    return Array.from(roles).sort()
+  }, [allQuestions])
+
+  // Extract unique tags/topics
   const availableTopics = useMemo(() => {
     const topics = new Set<string>()
     allQuestions.forEach((q: any) => {
-      if (q.category) topics.add(q.category)
+      const questionTopics = Array.isArray(q.topics)
+        ? q.topics
+        : (q.category ? [q.category] : [])
+      questionTopics.forEach((topic: string) => topics.add(topic))
     })
     return Array.from(topics).sort()
   }, [allQuestions])
@@ -58,31 +83,69 @@ export default function InterviewPage() {
   // Filter Logic
   const filtered = useMemo(() => {
     return allQuestions.filter((q: any) => {
-      const matchSearch = search === "" || q.question.toLowerCase().includes(search.toLowerCase())
+      const searchableText = [
+        q.question,
+        q.description,
+        q.subject,
+        q.category,
+        ...(Array.isArray(q.roles) ? q.roles : []),
+        ...(Array.isArray(q.topics) ? q.topics : []),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+
+      const matchSearch = search === "" || searchableText.includes(search.toLowerCase())
 
       const qDiff = q.difficulty?.toLowerCase()
       // Normalize selected difficulties to lowercase for comparison
       const matchDifficulty = selectedDifficulties.length === 0 ||
         selectedDifficulties.some(d => d.toLowerCase() === qDiff)
 
-      const matchTopic = selectedTopics.length === 0 ||
-        (q.category && selectedTopics.includes(q.category))
+      const subject = q.subject || q.category || ""
+      const matchSubject = selectedSubjects.length === 0 ||
+        (subject && selectedSubjects.includes(subject))
 
-      return matchSearch && matchDifficulty && matchTopic
+      const questionRoles = Array.isArray(q.roles) ? q.roles : []
+      const matchRole = selectedRoles.length === 0 ||
+        questionRoles.some((role: string) =>
+          selectedRoles.some((selected) => selected.toLowerCase() === role.toLowerCase())
+        )
+
+      const questionTopics = Array.isArray(q.topics) ? q.topics : (q.category ? [q.category] : [])
+      const matchTopic = selectedTopics.length === 0 ||
+        questionTopics.some((topic: string) => selectedTopics.includes(topic))
+
+      return matchSearch && matchDifficulty && matchSubject && matchRole && matchTopic
     })
-  }, [allQuestions, search, selectedDifficulties, selectedTopics])
+  }, [allQuestions, search, selectedDifficulties, selectedSubjects, selectedRoles, selectedTopics])
+
+  const sorted = useMemo(() => {
+    const items = [...filtered]
+    switch (sortBy) {
+      case "oldest":
+        return items.sort((a: any, b: any) => new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime())
+      case "az":
+        return items.sort((a: any, b: any) => a.question.localeCompare(b.question))
+      case "za":
+        return items.sort((a: any, b: any) => b.question.localeCompare(a.question))
+      case "newest":
+      default:
+        return items.sort((a: any, b: any) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+    }
+  }, [filtered, sortBy])
 
   // Pagination Logic
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE)
+  const totalPages = Math.ceil(sorted.length / ITEMS_PER_PAGE)
   const paginatedQuestions = useMemo(() => {
     const start = (currentPage - 1) * ITEMS_PER_PAGE
-    return filtered.slice(start, start + ITEMS_PER_PAGE)
-  }, [filtered, currentPage])
+    return sorted.slice(start, start + ITEMS_PER_PAGE)
+  }, [sorted, currentPage])
 
   // Reset page when filters change
   useMemo(() => {
     setCurrentPage(1)
-  }, [search, selectedDifficulties, selectedTopics])
+  }, [search, selectedDifficulties, selectedSubjects, selectedRoles, selectedTopics, sortBy])
 
   // Set page title
   const websiteName = import.meta.env.VITE_WEBSITE_NAME
@@ -131,9 +194,17 @@ export default function InterviewPage() {
                 setSearch={setSearch}
                 selectedDifficulties={selectedDifficulties}
                 setSelectedDifficulties={setSelectedDifficulties}
+                selectedSubjects={selectedSubjects}
+                setSelectedSubjects={setSelectedSubjects}
+                availableSubjects={availableSubjects}
+                selectedRoles={selectedRoles}
+                setSelectedRoles={setSelectedRoles}
+                availableRoles={availableRoles}
                 selectedTopics={selectedTopics}
                 setSelectedTopics={setSelectedTopics}
                 availableTopics={availableTopics}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
                 totalQuestions={allQuestions.length}
               />
             </div>
@@ -158,9 +229,17 @@ export default function InterviewPage() {
                       setSearch={setSearch}
                       selectedDifficulties={selectedDifficulties}
                       setSelectedDifficulties={setSelectedDifficulties}
+                      selectedSubjects={selectedSubjects}
+                      setSelectedSubjects={setSelectedSubjects}
+                      availableSubjects={availableSubjects}
+                      selectedRoles={selectedRoles}
+                      setSelectedRoles={setSelectedRoles}
+                      availableRoles={availableRoles}
                       selectedTopics={selectedTopics}
                       setSelectedTopics={setSelectedTopics}
                       availableTopics={availableTopics}
+                      sortBy={sortBy}
+                      setSortBy={setSortBy}
                       totalQuestions={allQuestions.length}
                     />
                   </div>
@@ -228,15 +307,29 @@ export default function InterviewPage() {
                             <Badge variant="outline" className={`capitalize font-medium border-0 ${difficultyColors[q.difficulty] || "bg-secondary text-foreground"}`}>
                               {q.difficulty}
                             </Badge>
-                            {q.category && (
+                            {(q.subject || q.category) && (
                               <Badge variant="secondary" className="capitalize text-xs font-normal text-muted-foreground">
-                                {q.category}
+                                {q.subject || q.category}
                               </Badge>
                             )}
                           </div>
                           <h3 className="text-lg font-semibold text-foreground leading-snug group-hover:text-primary transition-colors pr-4">
                             {q.question}
                           </h3>
+                          {Array.isArray(q.roles) && q.roles.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-2">
+                              {q.roles.slice(0, 3).map((role: string) => (
+                                <Badge key={role} variant="outline" className="text-[11px]">
+                                  {role}
+                                </Badge>
+                              ))}
+                              {q.roles.length > 3 && (
+                                <Badge variant="outline" className="text-[11px]">
+                                  +{q.roles.length - 3}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
                         </div>
 
                         <Button size="icon" variant="ghost" className="shrink-0 text-muted-foreground">
@@ -284,6 +377,8 @@ export default function InterviewPage() {
                   <Button variant="outline" onClick={() => {
                     setSearch("")
                     setSelectedDifficulties([])
+                    setSelectedSubjects([])
+                    setSelectedRoles([])
                     setSelectedTopics([])
                   }}>
                     Clear All Filters
