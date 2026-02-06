@@ -28,6 +28,22 @@ const chapterSchema = new mongoose.Schema(
       type: String,
       default: "from-gray-500/80 to-gray-600/80",
     },
+    level: {
+      type: String,
+      default: "Intermediate",
+    },
+    parentId: {
+      type: String,
+      default: null,
+    },
+    hasSubChapters: {
+      type: Boolean,
+      default: false,
+    },
+    navPath: {
+      type: String,
+      default: "",
+    },
     createdAt: {
       type: Date,
       default: Date.now,

@@ -48,11 +48,18 @@ export const createNote = async (req, res) => {
 
     // Send notification email to all users with the note URL
     try {
-      const noteUrl = `${frontendBaseUrl}/notes/${note.slug}`
+      let chapterSlug = note.chapterId || "general"
+
+      // If chapterId is missing (legacy or missing from request), try to find it by name
+      if (!note.chapterId && note.chapter) {
+        const ch = await Chapter.findOne({ title: note.chapter })
+        if (ch) chapterSlug = ch.slug
+      }
+
+      const noteUrl = `${frontendBaseUrl}/notes/${chapterSlug}/${note.slug}`
       await sendNotesUploadNotification(note, noteUrl)
     } catch (notificationError) {
       console.error("⚠️ Failed to send notes upload notification:", notificationError.message)
-      // Don't fail the request if notification fails
     }
 
     res.status(201).json({
@@ -113,12 +120,13 @@ export const deleteNote = async (req, res) => {
 // User: Get all notes (with filters)
 export const getNotes = async (req, res) => {
   try {
-    const { category, chapter, difficulty, isPremium } = req.query
+    const { category, chapter, chapterId, difficulty, isPremium } = req.query
 
     let filter = { status: "Published" }
 
     if (category) filter.category = category
     if (chapter) filter.chapter = chapter
+    if (chapterId) filter.chapterId = chapterId
     if (difficulty) filter.difficulty = difficulty
     if (isPremium === "true") filter.isPremium = true
 

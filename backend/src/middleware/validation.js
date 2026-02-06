@@ -28,13 +28,25 @@ export const validateInterviewQuestion = (data) => {
     answer: Joi.string().required(),
     content: Joi.string(),
     difficulty: Joi.string()
-      .valid("Beginner", "Intermediate", "Advanced")
-      .default("Intermediate"),
-    subject: Joi.string().trim(), // Optional subject field
-    roles: Joi.array()
-      .items(Joi.string().trim()) // Allow any string for custom role names
+      .trim()
       .required(),
-    topics: Joi.array().items(Joi.string()),
+    subject: Joi.string().trim(), // Optional subject field
+    roles: Joi.alternatives()
+      .try(
+        Joi.array().items(Joi.string().trim().min(1)),
+        Joi.string().trim().min(1)
+      )
+      .required(),
+    topics: Joi.alternatives()
+      .try(
+        Joi.array().items(Joi.string().trim().min(1)),
+        Joi.string().trim().min(1)
+      ),
+    companies: Joi.alternatives()
+      .try(
+        Joi.array().items(Joi.string().trim().min(1)),
+        Joi.string().trim().min(1)
+      ),
     codeBlocks: Joi.array().items(
       Joi.object({
         id: Joi.string().required(),

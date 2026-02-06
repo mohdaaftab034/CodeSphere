@@ -162,12 +162,22 @@ export default function NoteEditorPage() {
           // Update existing note
           await notesAPI.update(token, id, payload)
           alert("Note updated successfully!")
+          navigate("/admin/notes")
         } else {
           // Create new note
-          await notesAPI.create(token, payload)
+          const response = await notesAPI.create(token, payload)
+          const newNote = response.note || response.data?.note || response.data
+
           alert("Note created successfully!")
+
+          // If published, navigate to the note page
+          if (newNote && status === "Published") {
+            const chapId = newNote.chapterId || "general"
+            navigate(`/notes/${chapId}/${newNote.slug}`)
+          } else {
+            navigate("/admin/notes")
+          }
         }
-        navigate("/admin/notes")
       } catch (error: any) {
         console.error("Failed to save note:", error)
         const errorMsg = error?.message || "Failed to save note"
@@ -467,21 +477,19 @@ export default function NoteEditorPage() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => setFormData({ ...formData, isPremium: false })}
-                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                            !formData.isPremium
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${!formData.isPremium
                               ? "bg-primary text-primary-foreground"
                               : "bg-secondary text-muted-foreground"
-                          }`}
+                            }`}
                         >
                           Free
                         </button>
                         <button
                           onClick={() => setFormData({ ...formData, isPremium: true })}
-                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                            formData.isPremium
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${formData.isPremium
                               ? "bg-primary text-primary-foreground"
                               : "bg-secondary text-muted-foreground"
-                          }`}
+                            }`}
                         >
                           Premium
                         </button>
@@ -536,8 +544,8 @@ export default function NoteEditorPage() {
                           formData.difficulty === "Beginner"
                             ? "bg-emerald-500/10 text-emerald-500"
                             : formData.difficulty === "Intermediate"
-                            ? "bg-amber-500/10 text-amber-500"
-                            : "bg-rose-500/10 text-rose-500"
+                              ? "bg-amber-500/10 text-amber-500"
+                              : "bg-rose-500/10 text-rose-500"
                         }
                       >
                         {formData.difficulty}

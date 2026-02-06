@@ -13,6 +13,103 @@ const websiteName = process.env.WEBSITE_NAME || "CodeSphere"
 const frontendUrl = process.env.FRONTEND_URL || ""
 const frontendBaseUrl = frontendUrl.replace(/\/$/, "")
 
+const toTitleCase = (value = "") =>
+  value
+    .toString()
+    .trim()
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+
+const buildLooseRegex = (slug = "") => {
+  const cleaned = slug.toString().toLowerCase().replace(/[^a-z0-9]/g, "")
+  if (!cleaned) return null
+  const pattern = cleaned.split("").map((char) => char.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")).join("\\W*")
+  return new RegExp(`^${pattern}$`, "i")
+}
+
+const buildLooseContainsRegex = (slug = "") => {
+  const cleaned = slug.toString().toLowerCase().replace(/[^a-z0-9]/g, "")
+  if (!cleaned) return null
+  const pattern = cleaned.split("").map((char) => char.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")).join("\\W*")
+  return new RegExp(pattern, "i")
+}
+
+const normalizeDifficulty = (slug = "") => {
+  const normalized = slug.toString().trim().toLowerCase()
+  if (normalized === "easy" || normalized === "beginner") return ["Easy", "Beginner"]
+  if (normalized === "medium" || normalized === "intermediate") return ["Medium", "Intermediate"]
+  if (normalized === "hard" || normalized === "advanced") return ["Hard", "Advanced"]
+  return []
+}
+
+const normalizeListInput = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .flatMap((item) => (typeof item === "string" ? item.split(",") : []))
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+
+  return []
+}
+
+const uniqueList = (items) => {
+  const result = []
+  for (const item of items) {
+    if (!result.some((existing) => existing.toLowerCase() === item.toLowerCase())) {
+      result.push(item)
+    }
+  }
+  return result
+}
+
+const buildFilterByType = (type, slug) => {
+  const filter = { isPublished: { $ne: false } }
+
+  switch (type) {
+    case "topic": {
+      const regex = buildLooseContainsRegex(slug)
+      if (!regex) return null
+      filter.topics = { $regex: regex }
+      return filter
+    }
+    case "company": {
+      const regex = buildLooseContainsRegex(slug)
+      if (!regex) return null
+      filter.companies = { $regex: regex }
+      return filter
+    }
+    case "role": {
+      const regex = buildLooseContainsRegex(slug)
+      if (!regex) return null
+      filter.roles = { $regex: regex }
+      return filter
+    }
+    case "difficulty": {
+      const values = normalizeDifficulty(slug)
+      if (values.length) {
+        filter.difficulty = { $in: values }
+      } else {
+        const regex = buildLooseRegex(slug)
+        if (!regex) return null
+        filter.difficulty = { $regex: regex }
+      }
+      return filter
+    }
+    default:
+      return null
+  }
+}
+
 // Admin: Create interview question
 export const createInterviewQuestion = async (req, res) => {
   try {
@@ -22,12 +119,20 @@ export const createInterviewQuestion = async (req, res) => {
       return res.status(400).json({ message: error.details[0].message })
     }
 
+    const normalized = {
+      ...value,
+      roles: uniqueList(normalizeListInput(value.roles)),
+      topics: uniqueList(normalizeListInput(value.topics)),
+      companies: uniqueList(normalizeListInput(value.companies)),
+      difficulty: typeof value.difficulty === "string" ? value.difficulty.trim() : value.difficulty,
+    }
+
     // Ensure roles is an array and not empty
-    if (!value.roles || value.roles.length === 0) {
+    if (!normalized.roles || normalized.roles.length === 0) {
       return res.status(400).json({ message: "At least one role must be selected" })
     }
 
-    const question = await InterviewQuestion.create(value)
+    const question = await InterviewQuestion.create(normalized)
 
     // Send notification email to all users with direct link to the question
     try {
@@ -56,7 +161,15 @@ export const updateInterviewQuestion = async (req, res) => {
       return res.status(400).json({ message: error.details[0].message })
     }
 
-    const question = await InterviewQuestion.findByIdAndUpdate(req.params.id, value, {
+    const normalized = {
+      ...value,
+      roles: uniqueList(normalizeListInput(value.roles)),
+      topics: uniqueList(normalizeListInput(value.topics)),
+      companies: uniqueList(normalizeListInput(value.companies)),
+      difficulty: typeof value.difficulty === "string" ? value.difficulty.trim() : value.difficulty,
+    }
+
+    const question = await InterviewQuestion.findByIdAndUpdate(req.params.id, normalized, {
       new: true,
       runValidators: true,
     })
@@ -101,7 +214,8 @@ export const getQuestionsByRole = async (req, res) => {
     let filter = {}
 
     if (role) {
-      filter.roles = { $regex: new RegExp(`^${role.replace(/-/g, " ")}$`, "i") }
+      const roleRegex = buildLooseContainsRegex(role)
+      filter.roles = roleRegex ? { $regex: roleRegex } : role
     }
 
     filter.isPublished = { $ne: false }
@@ -114,7 +228,7 @@ export const getQuestionsByRole = async (req, res) => {
       filter.subject = subject
     }
 
-    const questions = await InterviewQuestion.find(filter)
+    const questions = await InterviewQuestion.find(filter).sort({ createdAt: -1 })
 
     res.status(200).json({
       success: true,
@@ -141,10 +255,11 @@ export const getAllQuestions = async (req, res) => {
     }
 
     if (role) {
-      filter.roles = { $regex: new RegExp(`^${role.replace(/-/g, " ")}$`, "i") }
+      const roleRegex = buildLooseContainsRegex(role)
+      filter.roles = roleRegex ? { $regex: roleRegex } : role
     }
 
-    const questions = await InterviewQuestion.find(filter)
+    const questions = await InterviewQuestion.find(filter).sort({ createdAt: -1 })
 
     res.status(200).json({
       success: true,
@@ -193,7 +308,7 @@ export const getAdminQuestions = async (req, res) => {
       filter.difficulty = difficulty
     }
 
-    const questions = await InterviewQuestion.find(filter)
+    const questions = await InterviewQuestion.find(filter).sort({ createdAt: -1 })
 
     res.status(200).json({
       success: true,
@@ -221,7 +336,7 @@ export const generateRolePDF = async (req, res) => {
     // Fetch questions for this role - use more robust matching
     // We search case-insensitively and handle both slug and name if possible
     const questions = await InterviewQuestion.find({
-      roles: { $regex: new RegExp(`^${role.replace(/-/g, " ")}$`, "i") },
+      roles: { $regex: buildLooseContainsRegex(role) || role },
       isPublished: { $ne: false }
     }).sort({ difficulty: 1, createdAt: -1 })
 
@@ -290,6 +405,117 @@ export const generateRolePDF = async (req, res) => {
   }
 }
 
+// User: Get questions by topic/company/role/difficulty
+export const getQuestionsByType = async (req, res) => {
+  try {
+    const pathParts = req.path.split("/").filter(Boolean)
+    const resolvedType = req.params.type || pathParts[0]
+    const resolvedSlug = req.params.slug || pathParts[1]
+    const filter = buildFilterByType(resolvedType, resolvedSlug)
+
+    if (!filter) {
+      return res.status(400).json({ message: "Invalid filter type or slug" })
+    }
+
+    const questions = await InterviewQuestion.find(filter).sort({ createdAt: -1 })
+
+    res.status(200).json({
+      success: true,
+      count: questions.length,
+      questions,
+    })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+// User: Generate PDF for topic/company/role/difficulty
+export const generateFilteredPDF = async (req, res) => {
+  try {
+    const { type, slug } = req.params
+
+    if (!req.user || (!req.user.isPaid && req.user.role !== "admin")) {
+      return res.status(403).json({
+        message: "Premium subscription required to download interview questions as PDF",
+        isPremiumRequired: true
+      })
+    }
+
+    const filter = buildFilterByType(type, slug)
+    if (!filter) {
+      return res.status(400).json({ message: "Invalid filter type or slug" })
+    }
+
+    const questions = await InterviewQuestion.find(filter).sort({ difficulty: 1, createdAt: -1 })
+
+    if (!questions || questions.length === 0) {
+      return res.status(404).json({ message: "No questions found for this selection" })
+    }
+
+    let titleSuffix = toTitleCase(slug)
+    if (type === "difficulty") {
+      const normalized = normalizeDifficulty(slug)[0] || toTitleCase(slug)
+      titleSuffix = normalized
+    }
+
+    const pageTitle = `${titleSuffix} Interview Questions`
+
+    const doc = createBasePDF(pageTitle)
+
+    res.setHeader("Content-Type", "application/pdf")
+    res.setHeader("Content-Disposition", `attachment; filename="${slug}-interview-questions.pdf"`)
+
+    doc.pipe(res)
+
+    doc.fontSize(24).font("Helvetica-Bold").fillColor("#0066cc").text(pageTitle, { align: "center" })
+    doc.moveDown(0.2)
+    doc.fontSize(10).font("Helvetica").fillColor("#666666").text(`Total Questions: ${questions.length}  |  Generated on: ${new Date().toLocaleDateString()}`, { align: "center" })
+    doc.moveDown(2)
+
+    questions.forEach((question, index) => {
+      if (doc.y > doc.page.height - 150) {
+        doc.addPage()
+      }
+
+      doc.fontSize(12).font("Helvetica-Bold").fillColor("#1e40af")
+      doc.text(`Question ${index + 1}`, { continued: true })
+      doc.fontSize(10).font("Helvetica").fillColor("#666666").text(`  [${question.difficulty}]`, { align: "right" })
+      doc.moveDown(0.5)
+
+      doc.fontSize(13).font("Helvetica-Bold").fillColor("#000000")
+      doc.text(question.question, { align: "left" })
+      doc.moveDown(0.3)
+
+      if (question.description) {
+        doc.fontSize(10).font("Helvetica-Oblique").fillColor("#444444")
+        doc.text(question.description)
+        doc.moveDown(0.5)
+      }
+
+      const content = question.content || question.answer || "No answer provided."
+      doc.fillColor("#000000")
+      renderMarkdownToPDF(doc, content)
+
+      if (index < questions.length - 1) {
+        doc.moveDown(1)
+        doc.strokeColor("#eeeeee").lineWidth(1).moveTo(50, doc.y).lineTo(545, doc.y).stroke()
+        doc.moveDown(1.5)
+      }
+    })
+
+    finalizePDF(doc, pageTitle)
+
+    doc.end()
+  } catch (error) {
+    console.error("Interview PDF generation error:", error)
+    if (!res.headersSent) {
+      res.status(500).json({ message: "Failed to generate PDF", error: error.message })
+    } else {
+      res.end()
+    }
+  }
+}
+
 // Admin: Manually trigger daily interview question notification
 export const triggerDailyQuestion = async (req, res) => {
   try {
@@ -336,6 +562,36 @@ export const getSubjects = async (req, res) => {
     res.status(200).json({
       success: true,
       subjects,
+    })
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+// User/Admin: Get interview meta lists for dynamic forms
+export const getInterviewMeta = async (req, res) => {
+  try {
+    const [roles, topics, companies, difficulties] = await Promise.all([
+      InterviewQuestion.distinct("roles"),
+      InterviewQuestion.distinct("topics"),
+      InterviewQuestion.distinct("companies"),
+      InterviewQuestion.distinct("difficulty"),
+    ])
+
+    const normalize = (items) =>
+      uniqueList(normalizeListInput(items))
+        .filter((item) => typeof item === "string" && item.trim())
+        .map((item) => item.trim())
+        .sort((a, b) => a.localeCompare(b))
+
+    res.status(200).json({
+      success: true,
+      meta: {
+        roles: normalize(roles),
+        topics: normalize(topics),
+        companies: normalize(companies),
+        difficulties: normalize(difficulties),
+      },
     })
   } catch (error) {
     res.status(500).json({ message: error.message })

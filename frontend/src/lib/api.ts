@@ -228,7 +228,7 @@ export const chaptersAPI = {
   },
 
   // Admin: Create chapter
-  create: async (token: string, data: { title: string; slug?: string; description?: string; icon?: string; gradient?: string }) => {
+  create: async (token: string, data: { title: string; slug?: string; description?: string; icon?: string; gradient?: string; level?: string; parentId?: string; hasSubChapters?: boolean }) => {
     const response = await fetch(`${API_BASE_URL}/chapters`, {
       method: "POST",
       headers: {
@@ -240,10 +240,60 @@ export const chaptersAPI = {
     if (!response.ok) throw new Error("Failed to create chapter")
     return response.json()
   },
+
+  // Admin: Delete chapter
+  delete: async (token: string, id: string) => {
+    const response = await fetch(`${API_BASE_URL}/chapters/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!response.ok) throw new Error("Failed to delete chapter")
+    return response.json()
+  },
+
+  // Admin: Update chapter
+  update: async (token: string, id: string, data: any) => {
+    const response = await fetch(`${API_BASE_URL}/chapters/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) throw new Error("Failed to update chapter")
+    return response.json()
+  },
 }
 
 // Interview Questions API calls
 export const interviewAPI = {
+  // User/Admin: Get interview meta lists
+  getMeta: async () => {
+    const response = await fetch(`${API_BASE_URL}/interview-questions/meta`)
+    if (!response.ok) throw new Error("Failed to fetch interview meta")
+    return response.json()
+  },
+
+  // User: Get questions by topic/company/role/difficulty via slug
+  getByTypeSlug: async (type: "topic" | "company" | "role" | "difficulty", slug: string) => {
+    const response = await fetch(`${API_BASE_URL}/interview-questions/${type}/${encodeURIComponent(slug)}`)
+    if (!response.ok) throw new Error("Failed to fetch interview questions")
+    return response.json()
+  },
+
+  // User: Download interview questions as PDF by type/slug (Premium)
+  downloadByType: async (type: "topic" | "company" | "role" | "difficulty", slug: string, token: string) => {
+    const response = await fetch(`${API_BASE_URL}/interview-questions/pdf/${type}/${encodeURIComponent(slug)}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(error.message || "Failed to download PDF")
+    }
+    return response.blob()
+  },
+
   // User: Get questions by role
   getByRole: async (role: string, filters?: { difficulty?: string }) => {
     const params = new URLSearchParams({ role })

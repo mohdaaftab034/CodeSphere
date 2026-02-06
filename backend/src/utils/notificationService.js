@@ -67,65 +67,88 @@ const escapeHtml = (text) => {
  * @returns {string} Complete HTML email
  */
 export const generateBaseTemplate = (title, content, preheader = "", ctaLabel = "", ctaUrl = frontendBaseUrl) => {
-
-  // Ensure ctaUrl defaults to frontendBaseUrl if not provided
   const finalCtaUrl = ctaUrl || frontendBaseUrl;
 
   return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" /> 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-    body { margin: 0; padding: 0; background-color: #f8fafc; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
-    table { border-collapse: collapse; }
-    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
-    .header { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); padding: 40px 20px; text-align: center; color: #ffffff; }
-    .content { padding: 40px 32px; color: #1e293b; line-height: 1.6; }
-    .footer { background-color: #f1f5f9; padding: 32px; text-align: center; color: #64748b; font-size: 13px; }
-    .button { display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); color: #ffffff !important; text-decoration: none; padding: 14px 32px; border-radius: 999px; font-weight: 700; font-size: 16px; margin: 24px 0; box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3); }
-    .link { color: #6366f1; text-decoration: none; font-weight: 600; }
-    .badge { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; }
+    /* Reset & Base */
+    body { margin: 0; padding: 0; min-width: 100%; background-color: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    table { border-spacing: 0; border-collapse: collapse; width: 100%; }
+    img { border: 0; -ms-interpolation-mode: bicubic; }
+    
+    /* Layout */
+    .wrapper { background-color: #f9fafb; padding: 40px 20px; }
+    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+    
+    /* Header */
+    .header { background-color: #ffffff; padding: 32px; border-bottom: 1px solid #f3f4f6; text-align: center; }
+    .logo { color: #4f46e5; font-size: 24px; font-weight: 800; text-decoration: none; letter-spacing: -0.025em; }
+    
+    /* Body content */
+    .content { padding: 40px; color: #374151; font-size: 16px; line-height: 1.6; }
+    .hero { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 32px; margin-bottom: 32px; border-radius: 8px; color: #ffffff; text-align: center; }
+    .hero h1 { margin: 0; font-size: 24px; font-weight: 700; color: #ffffff; }
+    
+    /* Components */
+    .button-container { text-align: center; margin: 32px 0; }
+    .button { display: inline-block; background-color: #4f46e5; color: #ffffff !important; font-weight: 600; padding: 14px 28px; border-radius: 8px; text-decoration: none; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); }
+    .divider { border: 0; border-top: 1px solid #e5e7eb; margin: 32px 0; }
+    
+    /* Footer */
+    .footer { background-color: #f9fafb; padding: 32px; text-align: center; color: #6b7280; font-size: 14px; }
+    .social-links { margin-bottom: 16px; }
+    .social-links a { color: #9ca3af; text-decoration: none; margin: 0 8px; font-size: 13px; }
+    
+    /* Utility */
+    .text-primary { color: #4f46e5; }
+    .font-bold { font-weight: 700; }
   </style>
 </head>
 <body>
   <div style="display: none; max-height: 0px; overflow: hidden;">${preheader}</div>
-  <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="background-color: #f8fafc; padding: 40px 0;">
-    <tr>
-      <td align="center"> 
-        <div class="container">
-          <!-- Header -->
-          <div class="header">
-            <div style="font-size: 40px; margin-bottom: 12px;">🚀</div>
-            <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.025em;">${title}</h1>
-          </div>
-          
-          <!-- Body -->
-          <div class="content">
-            ${content}
-            ${finalCtaUrl ? `
-            <div style="text-align: center; margin-top: 20px;">
-              <a href="${finalCtaUrl}" class="button">${ctaLabel || "View Details"}</a>
-            </div>` : ""}
-          </div>
-          
-          <!-- Footer -->
-          <div class="footer">
-            <p style="margin: 0 0 8px; font-weight: 700; color: #475569; font-size: 15px;">${websiteName}</p>
-            <p style="margin: 0 0 16px;">
-              <a href="${frontendBaseUrl}" class="link">${frontendDisplayUrl || frontendBaseUrl}</a>
-            </p>
-            <p style="margin: 0; font-size: 11px; line-height: 1.5;">
-              You are receiving this because you're part of our learning community.<br/>
-              &copy; ${new Date().getFullYear()} ${websiteName}. All rights reserved.
-            </p>
-          </div>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header">
+        <a href="${frontendBaseUrl}" class="logo">${websiteName}</a>
+      </div>
+      
+      <div class="content">
+        <div class="hero">
+          <h1>${title}</h1>
         </div>
-      </td>
-    </tr>
-  </table>
+        
+        ${content}
+        
+        ${ctaLabel ? `
+        <div class="button-container">
+          <a href="${finalCtaUrl}" class="button">${ctaLabel}</a>
+        </div>` : ""}
+        
+        <div class="divider"></div>
+        
+        <p style="font-size: 14px; color: #6b7280; text-align: center;">
+          Happy learning,<br>
+          <span class="text-primary font-bold">The ${websiteName} Team</span>
+        </p>
+      </div>
+      
+      <div class="footer">
+        <div class="social-links">
+          <a href="${frontendBaseUrl}/notes">Explore Notes</a> &bull;
+          <a href="${frontendBaseUrl}/interview">Interview Prep</a> &bull;
+          <a href="${frontendBaseUrl}/roadmap">Roadmaps</a>
+        </div>
+        <p style="margin: 0;">&copy; ${new Date().getFullYear()} ${websiteName}. All rights reserved.</p>
+        <p style="margin-top: 8px;">You're receiving this because you're a member of the ${websiteName} community.</p>
+      </div>
+    </div>
+  </div>
 </body>
 </html>`;
 };
@@ -186,18 +209,21 @@ export const sendInterviewQuestionNotification = async (question, questionUrl = 
     : `${process.env.FRONTEND_URL}/interview`)
 
   const content = `
-    <p style="margin-top: 0;">Hi learner 👋,</p>
-    <p>A brand new interview question has just been published! Sharpen your skills and stay ahead of the curve with today's challenge.</p>
+    <p>Hi learner 👋,</p>
+    <p>A brand new interview challenge has just been published! Sharpen your skills and stay ahead of the competition.</p>
     
-    <div style="background-color: #f1f5f9; border-left: 4px solid #6366f1; padding: 20px; border-radius: 8px; margin: 24px 0;">
-      <div class="badge" style="background-color: #6366f1; color: #ffffff;">Interview Prep</div>
-      <h2 style="margin: 8px 0; font-size: 20px; color: #0f172a;">${escapeHtml(question.question || "New Interview Question")}</h2>
-      <p style="margin: 12px 0; font-size: 14px; color: #64748b;">
-        <strong>Role:</strong> ${escapeHtml(question.roles?.join(", ") || "General")}<br/>
-        <strong>Difficulty:</strong> ${escapeHtml(question.difficulty || "Medium")}
-      </p>
+    <div style="background-color: #f3f4f6; padding: 24px; border-radius: 12px; margin: 24px 0;">
+      <h3 style="margin: 0 0 12px; color: #111827; font-size: 18px;">${escapeHtml(question.question || "Today's Challenge")}</h3>
+      <table width="100%">
+        <tr>
+          <td style="padding-bottom: 8px; font-size: 14px; color: #6b7280;"><strong>Role:</strong> ${escapeHtml(question.roles?.join(", ") || "General")}</td>
+        </tr>
+        <tr>
+          <td style="font-size: 14px; color: #6b7280;"><strong>Difficulty:</strong> ${escapeHtml(question.difficulty || "Medium")}</td>
+        </tr>
+      </table>
       ${question.description ? `
-      <p style="margin: 12px 0 0; font-size: 14px; color: #475569; font-style: italic;">
+      <p style="margin: 16px 0 0; font-size: 14px; color: #4b5563; font-style: italic; border-top: 1px solid #e5e7eb; padding-top: 16px;">
         "${escapeHtml(question.description).substring(0, 160)}${question.description.length > 160 ? "..." : ""}"
       </p>` : ""}
     </div>
@@ -213,7 +239,7 @@ export const sendInterviewQuestionNotification = async (question, questionUrl = 
     finalQuestionUrl
   );
 
-  return await sendNotificationToUsers("New Interview Question - Interview Preparation", htmlContent)
+  return await sendNotificationToUsers(`New Interview Question - Interview Preparation`, htmlContent)
 }
 
 /**
@@ -228,30 +254,30 @@ export const sendOtpEmail = async (userEmail, otp) => {
   }
 
   const content = `
-    <p style="margin-top: 0; text-align: center;">To finish logging in, please enter the following code:</p>
-    <div style="text-align: center; margin: 32px 0;">
-      <div style="display: inline-block; background-color: #f1f5f9; padding: 20px 40px; border-radius: 12px; font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #1e293b; border: 2px dashed #cbd5e1;">
+    <p style="text-align: center; color: #4b5563;">To finish logging in, please enter the following verification code:</p>
+    <div style="text-align: center; margin: 40px 0;">
+      <div style="display: inline-block; background-color: #f3f4f6; padding: 24px 48px; border-radius: 16px; font-size: 42px; font-weight: 800; letter-spacing: 12px; color: #111827; border: 2px solid #e5e7eb;">
         ${otp}
       </div>
     </div>
-    <p style="text-align: center; font-size: 14px; color: #64748b;">
-      This code is valid for <strong>10 minutes</strong>.<br/>
-      If you didn't request this, you can safely ignore this email.
+    <p style="text-align: center; font-size: 14px; color: #6b7280; max-width: 400px; margin: 0 auto;">
+      This code is valid for <strong style="color: #111827;">10 minutes</strong>. 
+      For security reasons, do not share this code with anyone.
     </p>
   `;
 
   const htmlContent = generateBaseTemplate(
-    "Your OTP Code",
+    "Verify Your Identity",
     content,
-    `Use ${otp} to verify your identity.`,
-    `Go to ${websiteName}`,
-    `${process.env.FRONTEND_URL}`
+    `Your verification code is ${otp}.`,
+    "",
+    ""
   );
 
   const mailOptions = {
     from: `"${websiteName}" <${process.env.EMAIL_USER}>`,
     to: userEmail,
-    subject: `Your OTP for ${websiteName}`,
+    subject: `Verification Code: ${otp}`,
     html: htmlContent,
   };
 
@@ -281,42 +307,44 @@ export const sendWelcomeEmail = async (user, isNewUser = false) => {
     const preheader = isNewUser ? "We're excited to have you on board!" : "You've successfully logged in.";
 
     const content = isNewUser ? `
-      <p style="margin-top: 0;">Hi ${userName} 👋,</p>
-      <p>We're thrilled to have you join <strong>${websiteName}</strong>! Our platform is designed to help you master modern technologies through curated notes, interview prep, and learning paths.</p>
+      <p>Hi ${userName} 👋,</p>
+      <p>We're thrilled to have you join <strong>${websiteName}</strong>! Our platform is dedicated to helping you master technology through structured notes, real-world interview prep, and guided roadmaps.</p>
       
-      <div style="background-color: #f9fafb; border-radius: 12px; padding: 24px; margin: 24px 0; border: 1px solid #e2e8f0; text-align: left;">
-        <h3 style="margin: 0 0 16px; color: #1e293b; font-size: 18px;">Ready to dive in? Here's where to start:</h3>
-        <table width="100%" cellpadding="0" cellspacing="0">
-          <tr><td style="padding: 8px 0; font-size: 15px; color: #475569;">📚 <strong>Notes:</strong> Structured guides for all stacks.</td></tr>
-          <tr><td style="padding: 8px 0; font-size: 15px; color: #475569;">💼 <strong>Interviews:</strong> Practice real-world questions.</td></tr>
-          <tr><td style="padding: 8px 0; font-size: 15px; color: #475569;">🛣️ <strong>Roadmaps:</strong> Step-by-step learning paths.</td></tr>
+      <div style="background-color: #f9fafb; border-radius: 12px; padding: 24px; margin: 32px 0; border: 1px solid #e5e7eb;">
+        <h3 style="margin: 0 0 16px; color: #111827; font-size: 18px;">What's waiting for you:</h3>
+        <table width="100%">
+          <tr><td style="padding: 10px 0; font-size: 15px; color: #4b5563;">🚀 <strong>Accelerated Learning:</strong> Industry-standard notes.</td></tr>
+          <tr><td style="padding: 10px 0; font-size: 15px; color: #4b5563;">💼 <strong>Interview Edge:</strong> Curated Q&A from top companies.</td></tr>
+          <tr><td style="padding: 10px 0; font-size: 15px; color: #4b5563;">🗺️ <strong>Step-by-Step Path:</strong> Visual roadmaps for your career.</td></tr>
         </table>
       </div>
       
-      <p>Happy coding, and let's build something great together!</p>
+      <p>We can't wait to see what you'll achieve. Let's get started!</p>
     ` : `
-      <p style="margin-top: 0;">Hi ${userName} 👋,</p>
-      <p>This is a quick confirmation that you've just logged in to your account. We're keeping things secure for you!</p>
+      <p>Hi ${userName} 👋,</p>
+      <p>This is a quick security confirmation that you've just logged in to your account. We're keeping things secure for you!</p>
       
-      <div style="background-color: #fff7ed; border: 1px solid #ffedd5; border-radius: 8px; padding: 16px; margin: 24px 0; font-size: 14px; color: #9a3412; text-align: left;">
-        <strong>Security Notice:</strong> If this wasn't you, please change your password immediately and contact our support team.
+      <div style="background-color: #fefce8; border: 1px solid #fef08a; border-radius: 8px; padding: 20px; margin: 32px 0; text-align: left;">
+        <p style="margin: 0; font-size: 14px; color: #854d0e; line-height: 1.5;">
+          <strong>Security Notice:</strong> If this log-in wasn't performed by you, please protect your account by changing your password immediately.
+        </p>
       </div>
       
-      <p>Head over to your dashboard to continue your learning journey.</p>
+      <p>Ready to continue? Your dashboard is updated with the latest resources.</p>
     `;
 
     const htmlContent = generateBaseTemplate(
       title,
       content,
       preheader,
-      isNewUser ? "Explore My Dashboard →" : "Continue to Dashboard →",
+      isNewUser ? "Get Started Now →" : "Go to Dashboard →",
       `${process.env.FRONTEND_URL}/dashboard`
     );
 
     const mailOptions = {
       from: `"${websiteName}" <${process.env.EMAIL_USER}>`,
       to: userEmail,
-      subject: isNewUser ? `Welcome to ${websiteName}!` : "Login Notification",
+      subject: isNewUser ? `Welcome to ${websiteName}!` : "Security Alert: New Login",
       html: htmlContent,
     }
 
@@ -337,34 +365,37 @@ export const sendNotesUploadNotification = async (note, noteUrl) => {
   if (!noteUrl) return { success: false, error: "URL required" }
 
   const content = ` 
-    <p style="margin-top: 0;">Hello 👋,</p>
-    <p>Fresh notes have just been uploaded to the platform! Keep your knowledge sharp with our latest documentation.</p>
+    <p>Hello 👋,</p>
+    <p>Exciting news! We've just published new notes on the platform. Keep your skills sharp and stay updated with the latest industry documentation.</p>
     
-    <div style="background-color: #f1f5f9; border-radius: 12px; padding: 24px; margin: 24px 0; border: 1px solid #e2e8f0; text-align: left;">
-      <div class="badge" style="background-color: #8b5cf6; color: #ffffff;">New Resource</div>
-      <h2 style="margin: 8px 0; font-size: 22px; color: #0f172a;">${escapeHtml(note.title || "New Notes Published")}</h2>
-      <p style="margin: 8px 0; font-size: 15px; color: #64748b;">
-        📘 <strong>Chapter:</strong> ${escapeHtml(note.chapter || "General")}<br/>
-        🗂️ <strong>Category:</strong> ${escapeHtml(note.category || "Development")}
-      </p>
+    <div style="background-color: #f3f4f6; border-radius: 12px; padding: 28px; margin: 32px 0; border: 1px solid #e5e7eb;">
+      <h2 style="margin: 0 0 16px; font-size: 22px; color: #111827;">${escapeHtml(note.title || "New Resource Published")}</h2>
+      <table width="100%" style="font-size: 15px; color: #6b7280;">
+        <tr>
+          <td style="padding-bottom: 8px;">📘 <strong>Chapter:</strong> ${escapeHtml(note.chapter || "General")}</td>
+        </tr>
+        <tr>
+          <td>🗂️ <strong>Category:</strong> ${escapeHtml(note.category || "Development")}</td>
+        </tr>
+      </table>
       ${note.excerpt || note.description ? `
-      <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 14px; color: #475569; line-height: 1.6;">
-        ${escapeHtml((note.excerpt || note.description || "").substring(0, 200))}${(note.excerpt || note.description || "").length > 200 ? "..." : ""}
+      <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #4b5563; line-height: 1.6; font-style: italic;">
+        "${escapeHtml((note.excerpt || note.description || "").substring(0, 180))}${(note.excerpt || note.description || "").length > 180 ? "..." : ""}"
       </div>` : ""}
     </div>
     
-    <p style="font-size: 14px; color: #64748b; font-style: italic;">"Learning is the only thing the mind never exhausts, never fears, and never regrets."</p>
+    <p style="font-size: 14px; color: #6b7280; text-align: center;">Get ahead by diving into these resources today.</p>
   `;
 
   const htmlContent = generateBaseTemplate(
     "New Notes Available",
     content,
-    `Check out our latest notes on ${note.title || ''}.`,
+    `Explore the latest notes on ${note.title || 'a new topic'}.`,
     "Start Reading →",
     noteUrl
   );
 
-  return await sendNotificationToUsers(`New Notes: ${note.title || "New Resource"}`, htmlContent)
+  return await sendNotificationToUsers(`New Notes Published: ${note.title || "New Resource"}`, htmlContent)
 }
 
 /**
@@ -378,24 +409,23 @@ export const sendRoadmapPublishedNotification = async (roadmap, roadmapUrl) => {
     : `${process.env.FRONTEND_URL}/roadmap`)
 
   const content = `
-    <p style="margin-top: 0;">Hi learner 👋,</p>
-    <p>A new learning roadmap has just been published! Master a new skill with our step-by-step career path.</p>
+    <p>Hi learner 👋,</p>
+    <p>We've just released a comprehensive learning roadmap! Master your next stack with a structured, step-by-step career path.</p>
     
-    <div style="background-color: #f1f5f9; border-left: 4px solid #8b5cf6; padding: 20px; border-radius: 8px; margin: 24px 0;">
-      <div class="badge" style="background-color: #8b5cf6; color: #ffffff;">New Pathway</div>
-      <h2 style="margin: 8px 0; font-size: 20px; color: #0f172a;">${escapeHtml(roadmap.title || "New Roadmap")}</h2>
-      <p style="margin: 12px 0; font-size: 14px; color: #64748b;">
-        ${escapeHtml(roadmap.description || "A comprehensive guide to mastering this stack.")}
+    <div style="background-color: #f3f4f6; border-radius: 12px; padding: 28px; margin: 32px 0; border: 1px solid #e5e7eb;">
+      <h2 style="margin: 0 0 12px; font-size: 22px; color: #111827;">${escapeHtml(roadmap.title || "Career Roadmap")}</h2>
+      <p style="margin: 0; font-size: 15px; color: #4b5563; line-height: 1.6;">
+        ${escapeHtml(roadmap.description || "A detailed guide designed to take you from beginner to job-ready in this technology.")}
       </p>
     </div>
     
-    <p>Follow this guided approach to achieve your learning goals faster and more efficiently.</p>
+    <p>Visualizing your progress is the best way to stay motivated. Check out the path we've mapped out for you!</p>
   `;
 
   const htmlContent = generateBaseTemplate(
     "New Learning Path Available",
     content,
-    `Start your journey with the new ${roadmap.title || ''} roadmap.`,
+    `Master ${roadmap.title || 'a new skill'} with our latest roadmap.`,
     "View Roadmap →",
     finalRoadmapUrl
   );

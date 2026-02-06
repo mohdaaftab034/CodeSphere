@@ -42,8 +42,8 @@ const interviewQuestionSchema = new mongoose.Schema(
     },
     difficulty: {
       type: String,
-      enum: ["Beginner", "Intermediate", "Advanced"],
-      default: "Intermediate",
+      trim: true,
+      default: "Medium",
     },
     subject: {
       type: String,
@@ -57,7 +57,18 @@ const interviewQuestionSchema = new mongoose.Schema(
         // Removed enum to allow custom role names
       },
     ],
-    topics: [String],
+    topics: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    companies: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     codeBlocks: [codeBlockSchema],
     isPublished: {
       type: Boolean,
@@ -83,5 +94,8 @@ const interviewQuestionSchema = new mongoose.Schema(
 interviewQuestionSchema.index({ roles: 1 })
 interviewQuestionSchema.index({ difficulty: 1 })
 interviewQuestionSchema.index({ subject: 1 })
+interviewQuestionSchema.index({ topics: 1 })
+interviewQuestionSchema.index({ companies: 1 })
 
 export default mongoose.model("InterviewQuestion", interviewQuestionSchema)
+ 

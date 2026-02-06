@@ -50,6 +50,10 @@ export default function SingleQuestionPage() {
         toast.success("Link copied to clipboard!")
     }
 
+    const roleSlug = question?.roles?.[0]
+        ? question.roles[0].toLowerCase().replace(/&/g, "and").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+        : null
+
     if (isLoading) {
         return (
             <div className="min-h-screen bg-background flex flex-col">
@@ -92,7 +96,7 @@ export default function SingleQuestionPage() {
                     {/* Breadcrumbs / Back Navigation */}
                     <div className="mb-8 flex items-center justify-between">
                         <Link
-                            to={question.roles?.[0] ? `/interview/${question.roles[0].toLowerCase().replace(/\s+/g, '-')}` : "/interview"}
+                            to={roleSlug ? `/interview-questions/role/${roleSlug}` : "/interview"}
                             className="group flex items-center text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
                         >
                             <ChevronLeft className="w-4 h-4 mr-1 transition-transform group-hover:-translate-x-1" />
@@ -170,7 +174,7 @@ export default function SingleQuestionPage() {
                             </p>
                             <div className="mt-4 flex justify-center">
                                 <Button asChild variant="outline" size="sm">
-                                    <Link to={question.roles?.[0] ? `/interview/${question.roles[0].toLowerCase().replace(/\s+/g, '-')}` : "/interview"}>
+                                    <Link to={roleSlug ? `/interview-questions/role/${roleSlug}` : "/interview"}>
                                         View All {question.roles?.[0] || 'Role'} Questions
                                     </Link>
                                 </Button>

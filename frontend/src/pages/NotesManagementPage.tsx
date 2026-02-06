@@ -164,12 +164,21 @@ export default function NotesManagementPage() {
                 </div>
               </div>
               <Button
+                onClick={() => navigate("/admin/topics")}
+                variant="outline"
+                className="flex items-center gap-2 w-full sm:w-auto"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span className="sm:inline">Manage Topics</span>
+              </Button>
+              <Button
                 onClick={() => navigate("/admin/notes/new")}
                 className="flex items-center gap-2 w-full sm:w-auto"
               >
                 <Plus className="w-4 h-4" />
                 <span className="sm:inline">Add New Note</span>
               </Button>
+
             </div>
           </div>
         </div>
@@ -214,17 +223,15 @@ export default function NotesManagementPage() {
                 <div className="hidden sm:flex border border-border rounded-lg">
                   <button
                     onClick={() => setViewMode("table")}
-                    className={`px-4 py-2 text-sm ${
-                      viewMode === "table" ? "bg-secondary" : ""
-                    } rounded-l-lg transition-colors`}
+                    className={`px-4 py-2 text-sm ${viewMode === "table" ? "bg-secondary" : ""
+                      } rounded-l-lg transition-colors`}
                   >
                     Table
                   </button>
                   <button
                     onClick={() => setViewMode("card")}
-                    className={`px-4 py-2 text-sm ${
-                      viewMode === "card" ? "bg-secondary" : ""
-                    } rounded-r-lg transition-colors`}
+                    className={`px-4 py-2 text-sm ${viewMode === "card" ? "bg-secondary" : ""
+                      } rounded-r-lg transition-colors`}
                   >
                     Cards
                   </button>
@@ -250,11 +257,10 @@ export default function NotesManagementPage() {
                           <button
                             key={cat}
                             onClick={() => setCategoryFilter(cat as any)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                              categoryFilter === cat
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${categoryFilter === cat
                                 ? "bg-primary text-primary-foreground"
                                 : "bg-secondary text-muted-foreground hover:text-foreground"
-                            }`}
+                              }`}
                           >
                             {cat}
                           </button>
@@ -270,11 +276,10 @@ export default function NotesManagementPage() {
                         <button
                           key={type}
                           onClick={() => setTypeFilter(type as any)}
-                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                            typeFilter === type
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${typeFilter === type
                               ? "bg-primary text-primary-foreground"
                               : "bg-secondary text-muted-foreground hover:text-foreground"
-                          }`}
+                            }`}
                         >
                           {type}
                         </button>
@@ -289,11 +294,10 @@ export default function NotesManagementPage() {
                         <button
                           key={status}
                           onClick={() => setStatusFilter(status as any)}
-                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                            statusFilter === status
+                          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${statusFilter === status
                               ? "bg-primary text-primary-foreground"
                               : "bg-secondary text-muted-foreground hover:text-foreground"
-                          }`}
+                            }`}
                         >
                           {status}
                         </button>
@@ -330,152 +334,152 @@ export default function NotesManagementPage() {
                 <>
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                  <thead className="bg-secondary/50">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Title
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Category
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Chapter
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Difficulty
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Type
-                      </th>
-                      <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-4 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {currentNotes.map((note: any, index: number) => (
-                      <motion.tr
-                        key={note.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="hover:bg-secondary/30 transition-colors"
-                      >
-                        <td className="px-6 py-4">
-                          <p className="text-sm font-medium text-foreground">{note.title}</p>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`text-sm font-medium ${getCategoryColor(note.category)}`}>
-                            {note.category}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <p className="text-sm text-muted-foreground">{note.chapter}</p>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Badge className={getDifficultyColor(note.difficulty)}>
-                            {note.difficulty}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Badge variant={note.isPremium ? "default" : "secondary"}>
-                            {note.isPremium ? "Premium" : "Free"}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Badge
-                            variant={note.status === "Published" ? "default" : "secondary"}
-                            className={
-                              note.status === "Published"
-                                ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                                : ""
-                            }
+                      <thead className="bg-secondary/50">
+                        <tr>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Title
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Category
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Chapter
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Difficulty
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Type
+                          </th>
+                          <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Status
+                          </th>
+                          <th className="px-6 py-4 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {currentNotes.map((note: any, index: number) => (
+                          <motion.tr
+                            key={note.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="hover:bg-secondary/30 transition-colors"
                           >
-                            {note.status === "Published" ? "Published" : "Draft"}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => navigate(`/notes/${note.id}`)}
-                              className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                              title="Preview"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => navigate(`/admin/notes/${note.id}/edit`)}
-                              className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                              title="Edit"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(note.id)}
-                              className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </tbody>
-                </table>
+                            <td className="px-6 py-4">
+                              <p className="text-sm font-medium text-foreground">{note.title}</p>
+                            </td>
+                            <td className="px-6 py-4">
+                              <span className={`text-sm font-medium ${getCategoryColor(note.category)}`}>
+                                {note.category}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <p className="text-sm text-muted-foreground">{note.chapter}</p>
+                            </td>
+                            <td className="px-6 py-4">
+                              <Badge className={getDifficultyColor(note.difficulty)}>
+                                {note.difficulty}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4">
+                              <Badge variant={note.isPremium ? "default" : "secondary"}>
+                                {note.isPremium ? "Premium" : "Free"}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4">
+                              <Badge
+                                variant={note.status === "Published" ? "default" : "secondary"}
+                                className={
+                                  note.status === "Published"
+                                    ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                                    : ""
+                                }
+                              >
+                                {note.status === "Published" ? "Published" : "Draft"}
+                              </Badge>
+                            </td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => navigate(`/notes/${note.id}`)}
+                                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                                  title="Preview"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => navigate(`/admin/notes/${note.id}/edit`)}
+                                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
+                                  title="Edit"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(note.id)}
+                                  className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                                  title="Delete"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </motion.tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
 
                   {/* Pagination */}
                   {totalPages > 1 && (
-                <div className="px-6 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
-                  <p className="text-sm text-muted-foreground text-center sm:text-left">
-                    Showing {indexOfFirstNote + 1} to{" "}
-                    {Math.min(indexOfLastNote, filteredNotes.length)} of {filteredNotes.length}{" "}
-                    notes
-                  </p>
+                    <div className="px-6 py-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <p className="text-sm text-muted-foreground text-center sm:text-left">
+                        Showing {indexOfFirstNote + 1} to{" "}
+                        {Math.min(indexOfLastNote, filteredNotes.length)} of {filteredNotes.length}{" "}
+                        notes
+                      </p>
 
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                      variant="outline"
-                      size="sm"
-                      className="h-9 w-9 p-0"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                    </Button>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                          variant="outline"
+                          size="sm"
+                          className="h-9 w-9 p-0"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </Button>
 
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map(
-                        (page) => (
-                          <Button
-                            key={page}
-                            onClick={() => setCurrentPage(page)}
-                            variant={currentPage === page ? "default" : "outline"}
-                            size="sm"
-                            className="h-9 w-9 p-0"
-                          >
-                            {page}
-                          </Button>
-                        )
-                      )}
+                        <div className="flex items-center gap-1">
+                          {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map(
+                            (page) => (
+                              <Button
+                                key={page}
+                                onClick={() => setCurrentPage(page)}
+                                variant={currentPage === page ? "default" : "outline"}
+                                size="sm"
+                                className="h-9 w-9 p-0"
+                              >
+                                {page}
+                              </Button>
+                            )
+                          )}
+                        </div>
+
+                        <Button
+                          onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                          disabled={currentPage === totalPages}
+                          variant="outline"
+                          size="sm"
+                          className="h-9 w-9 p-0"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-
-                    <Button
-                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
-                      variant="outline"
-                      size="sm"
-                      className="h-9 w-9 p-0"
-                    >
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+                  )}
                 </>
               )}
             </motion.div>
@@ -500,70 +504,70 @@ export default function NotesManagementPage() {
                 </div>
               ) : (
                 currentNotes.map((note: any, index: number) =>
-                <motion.div
-                  key={note.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="p-6 bg-card border border-border rounded-xl hover:shadow-lg transition-shadow"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <Badge variant={note.isPremium ? "default" : "secondary"}>
-                      {note.isPremium ? "Premium" : "Free"}
-                    </Badge>
-                    <Badge
-                      variant={note.status === "Published" ? "default" : "secondary"}
-                      className={
-                        note.status === "Published"
-                          ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
-                          : ""
-                      }
-                    >
-                      {note.status === "Published" ? "Published" : "Draft"}
-                    </Badge>
-                  </div>
-
-                  <h3 className="text-lg font-semibold text-foreground mb-2">{note.title}</h3>
-                  <div className="space-y-2 mb-4">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm font-medium ${getCategoryColor(note.category)}`}>
-                        {note.category}
-                      </span>
-                      <span className="text-sm text-muted-foreground">• {note.chapter}</span>
+                  <motion.div
+                    key={note.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="p-6 bg-card border border-border rounded-xl hover:shadow-lg transition-shadow"
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <Badge variant={note.isPremium ? "default" : "secondary"}>
+                        {note.isPremium ? "Premium" : "Free"}
+                      </Badge>
+                      <Badge
+                        variant={note.status === "Published" ? "default" : "secondary"}
+                        className={
+                          note.status === "Published"
+                            ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+                            : ""
+                        }
+                      >
+                        {note.status === "Published" ? "Published" : "Draft"}
+                      </Badge>
                     </div>
-                    <Badge className={getDifficultyColor(note.difficulty)}>
-                      {note.difficulty}
-                    </Badge>
-                  </div>
 
-                  <div className="flex items-center gap-2 pt-4 border-t border-border">
-                    <Button
-                      onClick={() => navigate(`/notes/${note.id}`)}
-                      variant="ghost"
-                      size="sm"
-                      className="flex-1"
-                    >
-                      <Eye className="w-4 h-4 mr-2" />
-                      Preview
-                    </Button>
-                    <Button
-                      onClick={() => navigate(`/admin/notes/${note._id || note.id}/edit`)}
-                      variant="ghost"
-                      size="sm"
-                      className="flex-1"
-                    >
-                      <Edit className="w-4 h-4 mr-2" />
-                      Edit
-                    </Button>
-                    <button
-                      onClick={() => handleDelete(note._id || note.id)}
-                      className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
+                    <h3 className="text-lg font-semibold text-foreground mb-2">{note.title}</h3>
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-medium ${getCategoryColor(note.category)}`}>
+                          {note.category}
+                        </span>
+                        <span className="text-sm text-muted-foreground">• {note.chapter}</span>
+                      </div>
+                      <Badge className={getDifficultyColor(note.difficulty)}>
+                        {note.difficulty}
+                      </Badge>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-4 border-t border-border">
+                      <Button
+                        onClick={() => navigate(`/notes/${note.id}`)}
+                        variant="ghost"
+                        size="sm"
+                        className="flex-1"
+                      >
+                        <Eye className="w-4 h-4 mr-2" />
+                        Preview
+                      </Button>
+                      <Button
+                        onClick={() => navigate(`/admin/notes/${note._id || note.id}/edit`)}
+                        variant="ghost"
+                        size="sm"
+                        className="flex-1"
+                      >
+                        <Edit className="w-4 h-4 mr-2" />
+                        Edit
+                      </Button>
+                      <button
+                        onClick={() => handleDelete(note._id || note.id)}
+                        className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
             </div>
           )}
         </div>

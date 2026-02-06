@@ -17,15 +17,8 @@ interface InterviewQuestion {
   content?: string
   difficulty: "Easy" | "Medium" | "Hard"
   roles: string[]
+  createdAt?: string
 }
-
-const roles = [
-  "Software Developer",
-  "Web Developer",
-  "Frontend Developer",
-  "Backend Developer",
-  "Full Stack Developer",
-]
 
 export default function InterviewManagementPage() {
   const websiteName = import.meta.env.VITE_WEBSITE_NAME
@@ -35,10 +28,11 @@ export default function InterviewManagementPage() {
     document.title = `Manage Interviews | ${websiteName}`
   }, [websiteName])
   const { token } = useAuth()
-  const [selectedRole, setSelectedRole] = useState(roles[0])
+  const [selectedRole, setSelectedRole] = useState("All")
   const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null)
   const [showRoleSelector, setShowRoleSelector] = useState(false)
   const [draftQuestion, setDraftQuestion] = useState<InterviewQuestion | null>(null)
+  const [availableRoles, setAvailableRoles] = useState<string[]>([])
 
   // Fetch questions from backend (memoized to avoid re-trigger loops)
   const fetchQuestions = useCallback(() => interviewAPI.getAllAdmin(token || ""), [token])
@@ -49,7 +43,7 @@ export default function InterviewManagementPage() {
   // Normalize API shape
   const questions = useMemo(() => {
     const list = questionsResponse?.data || questionsResponse?.questions || []
-    return list.map((q: any) => ({
+    const normalized = list.map((q: any) => ({
       ...q,
       id: q._id || q.id,
       roles: Array.isArray(q.roles)
@@ -58,9 +52,41 @@ export default function InterviewManagementPage() {
           ? [q.role]
           : [],
     })) as InterviewQuestion[]
+    return normalized.sort((a, b) => {
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0
+      return bTime - aTime
+    })
   }, [questionsResponse])
 
-  const filteredQuestions = questions.filter((q) => q.roles.includes(selectedRole))
+  useEffect(() => {
+    const loadMeta = async () => {
+      try {
+        if (!token) return
+        const response = await interviewAPI.getMeta()
+        const roles = response.meta?.roles || []
+        setAvailableRoles(roles)
+        if (roles.length && selectedRole === "All") {
+          setSelectedRole("All")
+        }
+      } catch (err) {
+        console.error("Failed to load interview roles", err)
+      }
+    }
+
+    loadMeta()
+  }, [token])
+
+  const rolesList = useMemo(() => {
+    if (availableRoles.length > 0) return availableRoles
+    const distinct = new Set<string>()
+    questions.forEach((q) => q.roles.forEach((role) => distinct.add(role)))
+    return Array.from(distinct)
+  }, [availableRoles, questions])
+
+  const filteredQuestions = selectedRole === "All"
+    ? questions
+    : questions.filter((q) => q.roles.includes(selectedRole))
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this question?")) return
@@ -135,7 +161,7 @@ export default function InterviewManagementPage() {
               <div className="space-y-2">
                 <p className="text-sm font-medium text-foreground">Select Roles</p>
                 <div className="flex flex-wrap gap-2">
-                  {roles.map((role) => (
+                  {rolesList.map((role) => (
                     <button
                       key={role}
                       onClick={() => {
@@ -187,7 +213,17 @@ export default function InterviewManagementPage() {
             animate={{ opacity: 1, y: 0 }}
             className="mb-6 flex flex-wrap gap-2"
           >
-            {roles.map((role) => (
+            <button
+              onClick={() => setSelectedRole("All")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                selectedRole === "All"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card border border-border text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              All
+            </button>
+            {rolesList.map((role) => (
               <button
                 key={role}
                 onClick={() => setSelectedRole(role)}
@@ -258,8 +294,7 @@ export default function InterviewManagementPage() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
-                            setDraftQuestion(question)
-                            setShowRoleSelector(true)
+                            navigate(`/admin/interviews/${question.id}/edit`)
                           }}
                           className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
                           title="Edit question"
