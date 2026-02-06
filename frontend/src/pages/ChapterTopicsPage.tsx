@@ -24,9 +24,10 @@ export default function ChapterTopicsPage() {
 
   // Fetch sub-chapters if this chapter has them
   const fetchSubChapters = useCallback(async () => {
-    if (!chapterId) return []
-    return getSubChapters(chapterId)
-  }, [chapterId])
+    const resolvedId = chapter?.id || chapterId
+    if (!resolvedId) return []
+    return getSubChapters(resolvedId)
+  }, [chapter?.id, chapterId])
 
   const { data: subChapters = [], isLoading: subChaptersLoading } = useQuery(fetchSubChapters, {
     enabled: !!chapterId,
@@ -137,10 +138,12 @@ export default function ChapterTopicsPage() {
   }
 
   // Otherwise, show notes listing for this chapter
+  const resolvedChapterId = chapter?.id || chapterId
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <NotesListing initialChapterId={chapterId || undefined} />
+      <NotesListing initialChapterId={resolvedChapterId || undefined} />
       <Footer />
     </div>
   )

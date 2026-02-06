@@ -32,7 +32,23 @@ export async function fetchChaptersConfig(): Promise<ChapterConfig[]> {
 
 export async function getChapterById(id: string): Promise<ChapterConfig | null> {
   const list = await fetchChaptersConfig()
-  return list.find(c => c.id === id) || null
+  const normalizedId = decodeURIComponent(id || "")
+    .trim()
+    .replace(/^\/+/, "")
+    .replace(/\/+$/, "")
+    .split("/")
+    .pop() || ""
+
+  if (!normalizedId) return null
+
+  const matchById = list.find((c) => c.id === normalizedId)
+  if (matchById) return matchById
+
+  const targetPath = `/notes/${normalizedId}`.toLowerCase()
+  const matchByNav = list.find((c) =>
+    (c.navPath || "").trim().toLowerCase().replace(/\/+$/, "") === targetPath
+  )
+  return matchByNav || null
 }
 
 export async function getSubChapters(parentId: string): Promise<ChapterConfig[]> {

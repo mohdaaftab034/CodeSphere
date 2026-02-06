@@ -125,8 +125,13 @@ export const getNotes = async (req, res) => {
     let filter = { status: "Published" }
 
     if (category) filter.category = category
-    if (chapter) filter.chapter = chapter
-    if (chapterId) filter.chapterId = chapterId
+    if (chapter && chapterId) {
+      filter.$or = [{ chapter }, { chapterId }]
+    } else if (chapter) {
+      filter.chapter = chapter
+    } else if (chapterId) {
+      filter.chapterId = chapterId
+    }
     if (difficulty) filter.difficulty = difficulty
     if (isPremium === "true") filter.isPremium = true
 
