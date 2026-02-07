@@ -606,7 +606,7 @@ export function Navbar() {
               className="md:hidden fixed top-0 right-0 h-full w-[82vw] max-w-sm bg-background border-l border-border shadow-2xl z-[1010] overflow-y-auto"
             >
               {/* User Profile Section in Mobile Menu */}
-              {user && (
+              {user ? (
                 <div className="px-6 py-10 bg-gradient-to-br from-secondary/50 via-background to-background border-b border-border">
                   <div className="flex items-center gap-4 mt-8">
                     <div className="relative">
@@ -628,9 +628,34 @@ export function Navbar() {
                     </div>
                   </div>
                 </div>
+              ) : (
+                <div className="px-6 py-10 bg-gradient-to-br from-secondary/50 via-background to-background border-b border-border">
+                  <div className="grid grid-cols-2 gap-3 mt-8">
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full justify-center"
+                    >
+                      <Link
+                        to="/login"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Log In
+                      </Link>
+                    </Button>
+                    <Button asChild className="w-full justify-center">
+                      <Link
+                        to="/notes"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Start
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
               )}
 
-              <div className={`px-4 pb-6 space-y-2 ${!user ? 'pt-24' : 'pt-4'}`}>
+              <div className="px-4 pb-6 pt-4 space-y-2">
                 {navItems.map((item) => (
                   <div key={item.label}>
                     <motion.div variants={mobileItemVariants}>
@@ -684,78 +709,53 @@ export function Navbar() {
                   </div>
                 ))}
 
-                <motion.div
-                  variants={mobileItemVariants}
-                  className="pt-4 mt-4 border-t border-border space-y-2"
-                >
-                  {!user ? (
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button
-                        asChild
-                        variant="outline"
-                        className="w-full justify-center"
+                {user && (
+                  <motion.div
+                    variants={mobileItemVariants}
+                    className="pt-4 mt-4 border-t border-border space-y-2"
+                  >
+                    {isAdmin ? (
+                      <Link
+                        to="/admin/dashboard"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-3 text-sm font-medium hover:bg-secondary rounded-xl transition-colors"
                       >
+                        <Settings className="w-4 h-4" />
+                        Admin Dashboard
+                      </Link>
+                    ) : (
+                      <>
                         <Link
-                          to="/login"
+                          to="/profile"
                           onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-2 px-4 py-3 text-sm font-medium hover:bg-secondary rounded-xl transition-colors"
                         >
-                          Log In
+                          <Users className="w-4 h-4" />
+                          My Profile
                         </Link>
-                      </Button>
-                      <Button asChild className="w-full justify-center">
                         <Link
-                          to="/notes"
-                          onClick={() => setMobileMenuOpen(false)}
-                        >
-                          Start
-                        </Link>
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      {isAdmin ? (
-                        <Link
-                          to="/admin/dashboard"
+                          to="/dashboard"
                           onClick={() => setMobileMenuOpen(false)}
                           className="flex items-center gap-2 px-4 py-3 text-sm font-medium hover:bg-secondary rounded-xl transition-colors"
                         >
                           <Settings className="w-4 h-4" />
-                          Admin Dashboard
+                          Dashboard
                         </Link>
-                      ) : (
-                        <>
-                          <Link
-                            to="/profile"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="flex items-center gap-2 px-4 py-3 text-sm font-medium hover:bg-secondary rounded-xl transition-colors"
-                          >
-                            <Users className="w-4 h-4" />
-                            My Profile
-                          </Link>
-                          <Link
-                            to="/dashboard"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="flex items-center gap-2 px-4 py-3 text-sm font-medium hover:bg-secondary rounded-xl transition-colors"
-                          >
-                            <Settings className="w-4 h-4" />
-                            Dashboard
-                          </Link>
-                        </>
-                      )}
-                      <Button
-                        onClick={() => {
-                          logout();
-                          setMobileMenuOpen(false);
-                          window.location.href = "/login";
-                        }}
-                        variant="ghost"
-                        className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
-                      >
-                        <X className="w-4 h-4 mr-2" /> Logout
-                      </Button>
-                    </>
-                  )}
-                </motion.div>
+                      </>
+                    )}
+                    <Button
+                      onClick={() => {
+                        logout();
+                        setMobileMenuOpen(false);
+                        window.location.href = "/login";
+                      }}
+                      variant="ghost"
+                      className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10"
+                    >
+                      <X className="w-4 h-4 mr-2" /> Logout
+                    </Button>
+                  </motion.div>
+                )}
               </div>
             </motion.div>
           </>
