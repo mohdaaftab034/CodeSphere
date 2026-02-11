@@ -7,7 +7,6 @@ import {
   Bookmark,
   ArrowLeft,
   FileText,
-  Lock,
   TrendingUp,
   Share2,
   Loader2,
@@ -165,38 +164,15 @@ export default function HandwrittenNotePDFPreviewPage() {
 
               {/* PDF Canvas */}
               <div className="relative bg-neutral-100 dark:bg-neutral-900 min-h-[500px] lg:h-[85vh] flex items-center justify-center">
-                {note.pdfUrl && !note.isPremium ? (
+                {note.pdfUrl ? (
                   <iframe
                     src={`${note.pdfUrl}#toolbar=0&navpanes=0`}
                     className="w-full h-full border-none shadow-inner"
                     title={note.title}
                   />
                 ) : (
-                  <div className="relative w-full h-full flex items-center justify-center p-8 text-center">
-                    {/* Glassmorphic Locked UI */}
-                    <div className="absolute inset-0 z-10 backdrop-blur-md bg-background/30" />
-                    <div className="relative z-20 max-w-sm p-8 rounded-3xl bg-background/80 border border-border shadow-2xl">
-                      <div className="w-16 h-16 bg-amber-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <Lock className="w-8 h-8 text-amber-500" />
-                      </div>
-                      <h3 className="text-xl font-bold mb-2">
-                        Unlock Full Note
-                      </h3>
-                      <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
-                        This high-quality handwritten note is part of our
-                        Premium collection. Get lifetime access to all PDF
-                        notes.
-                      </p>
-                      <Button className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl h-12 shadow-lg shadow-amber-500/20">
-                        Upgrade to Premium
-                      </Button>
-                    </div>
-                    {/* Mock Content Background */}
-                    <div className="w-full space-y-6 opacity-20 select-none">
-                      <div className="h-4 bg-foreground/40 rounded w-3/4 mx-auto" />
-                      <div className="h-4 bg-foreground/20 rounded w-1/2 mx-auto" />
-                      <div className="h-64 bg-foreground/10 rounded-2xl w-full" />
-                    </div>
+                  <div className="w-full h-full flex items-center justify-center p-8 text-center text-muted-foreground">
+                    PDF preview is not available.
                   </div>
                 )}
               </div>
@@ -258,19 +234,13 @@ export default function HandwrittenNotePDFPreviewPage() {
 
                 {/* Action Buttons */}
                 <div className="space-y-3">
-                  {note.isPremium ? (
-                    <Button className="w-full h-14 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-lg shadow-xl shadow-amber-500/10">
-                      Unlock Now
-                    </Button>
-                  ) : (
-                    <Button 
-                      onClick={handleDownload}
-                      className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg shadow-xl shadow-primary/10 transition-all active:scale-[0.98]"
-                    >
-                      <Download className="w-5 h-5 mr-2" />
-                      Download PDF
-                    </Button>
-                  )}
+                  <Button 
+                    onClick={handleDownload}
+                    className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-lg shadow-xl shadow-primary/10 transition-all active:scale-[0.98]"
+                  >
+                    <Download className="w-5 h-5 mr-2" />
+                    Download PDF
+                  </Button>
 
                   <div className="grid grid-cols-2 gap-3">
                     <Button

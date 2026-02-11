@@ -320,18 +320,10 @@ export const getAdminQuestions = async (req, res) => {
   }
 }
 
-// User: Generate PDF for role-specific questions (Premium Feature)
+// User: Generate PDF for role-specific questions
 export const generateRolePDF = async (req, res) => {
   try {
     const { role } = req.params
-
-    // Premium Check
-    if (!req.user || (!req.user.isPaid && req.user.role !== "admin")) {
-      return res.status(403).json({
-        message: "Premium subscription required to download interview questions as PDF",
-        isPremiumRequired: true
-      })
-    }
 
     // Fetch questions for this role - use more robust matching
     // We search case-insensitively and handle both slug and name if possible
@@ -433,13 +425,6 @@ export const getQuestionsByType = async (req, res) => {
 export const generateFilteredPDF = async (req, res) => {
   try {
     const { type, slug } = req.params
-
-    if (!req.user || (!req.user.isPaid && req.user.role !== "admin")) {
-      return res.status(403).json({
-        message: "Premium subscription required to download interview questions as PDF",
-        isPremiumRequired: true
-      })
-    }
 
     const filter = buildFilterByType(type, slug)
     if (!filter) {

@@ -5,7 +5,6 @@ import {
   ArrowLeft,
   Download,
   Loader2,
-  Lock,
   ChevronDown,
   ChevronUp,
   BookOpen,
@@ -21,7 +20,6 @@ import { Badge } from "../components/ui/badge"
 import { InterviewQuestionRenderer } from "../components/InterviewQuestionRenderer"
 import { interviewAPI } from "../lib/api"
 import { useAuth } from "../contexts/AuthContext"
-import SubscriptionModal from "../components/SubscriptionModal"
 import { toast } from "react-hot-toast"
 
 const ITEMS_PER_PAGE = 10
@@ -65,11 +63,10 @@ export default function InterviewQuestionsPage({ pageType, paramKey }: Interview
   const params = useParams()
   const slug = (params as Record<string, string | undefined>)[paramKey] || ""
   const navigate = useNavigate()
-  const { isPaid, user, token } = useAuth()
+  const { token } = useAuth()
   const [expanded, setExpanded] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [isDownloading, setIsDownloading] = useState(false)
-  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false)
   const [selectedDifficulty, setSelectedDifficulty] = useState("all")
 
   const pageTitle = useMemo(() => {
@@ -158,11 +155,6 @@ export default function InterviewQuestionsPage({ pageType, paramKey }: Interview
   }
 
   const handleDownloadPDF = async () => {
-    if (!isPaid && user?.role !== "admin") {
-      setIsSubscriptionModalOpen(true)
-      return
-    }
-
     if (!token) return
 
     setIsDownloading(true)
@@ -254,11 +246,7 @@ export default function InterviewQuestionsPage({ pageType, paramKey }: Interview
                 onClick={handleDownloadPDF}
                 disabled={isDownloading || filteredQuestions.length === 0}
               >
-                {isPaid || user?.role === "admin" ? (
-                  <Download className="w-4 h-4" />
-                ) : (
-                  <Lock className="w-4 h-4" />
-                )}
+                <Download className="w-4 h-4" />
                 {isDownloading ? "Generating..." : "Download PDF"}
               </Button>
             </div>
@@ -421,11 +409,6 @@ export default function InterviewQuestionsPage({ pageType, paramKey }: Interview
       </main>
 
       <Footer />
-
-      <SubscriptionModal
-        open={isSubscriptionModalOpen}
-        onClose={() => setIsSubscriptionModalOpen(false)}
-      />
     </div>
   )
 }

@@ -10,14 +10,12 @@ import {
   ArrowLeft,
   ArrowRight,
   Download,
-  Lock,
 } from "lucide-react"
 import { Button } from "./ui/button"
 import { Link, useNavigate } from "react-router-dom"
 import { MarkdownRenderer } from "./MarkdownRenderer"
 import { notesAPI, usersAPI } from "../lib/api"
 import { useAuth } from "../contexts/AuthContext"
-import SubscriptionModal from "./SubscriptionModal"
 
 interface ApiNote {
   _id: string
@@ -57,9 +55,8 @@ const categoryColors: Record<string, string> = {
 export function NoteContent({ note, nextNote }: NoteContentProps) {
   const [isSaved, setIsSaved] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
-  const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false)
   const navigate = useNavigate()
-  const { token, isPaid, user } = useAuth()
+  const { token } = useAuth()
 
   // Check if the note is saved when component mounts
   useEffect(() => {
@@ -105,10 +102,6 @@ export function NoteContent({ note, nextNote }: NoteContentProps) {
   }
 
   const handleDownloadPDF = async () => {
-    if (!isPaid && user?.role !== "admin") {
-      setIsSubscriptionModalOpen(true)
-      return
-    }
     if (isDownloading) return
     setIsDownloading(true)
     try {
@@ -196,7 +189,7 @@ export function NoteContent({ note, nextNote }: NoteContentProps) {
                 aria-label="Download as PDF"
                 title="Download this note as PDF"
               >
-                {isPaid || user?.role === "admin" ? <Download className="w-5 h-5" /> : <Lock className="w-5 h-5" />}
+                <Download className="w-5 h-5" />
               </Button>
               <Button
                 variant="outline"
@@ -251,10 +244,6 @@ export function NoteContent({ note, nextNote }: NoteContentProps) {
         </motion.div>
       </div>
 
-      <SubscriptionModal
-        isOpen={isSubscriptionModalOpen}
-        onClose={() => setIsSubscriptionModalOpen(false)}
-      />
     </article>
   )
 }

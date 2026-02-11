@@ -14,15 +14,13 @@ import {
     Cpu,
     ChevronDown,
     Loader2,
-    BookOpen,
-    Lock
+    BookOpen
 } from "lucide-react"
 import { Navbar } from "../components/Navbar"
 import { Footer } from "../components/Footer"
 import { Button } from "../components/ui/button"
 import { roadmapsAPI } from "../lib/api"
 import { useAuth } from "../contexts/AuthContext"
-import SubscriptionModal from "../components/SubscriptionModal"
 
 const iconMap: Record<string, any> = { Layers, Layout, Server, Cloud, Cpu }
 
@@ -148,8 +146,7 @@ export default function RoadmapDetailPage() {
     const websiteName = import.meta.env.VITE_WEBSITE_NAME
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
-    const { token, isPaid, user } = useAuth()
-    const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] = useState(false)
+    const { token } = useAuth()
     const [roadmap, setRoadmap] = useState<any>(null)
     const [nodes, setNodes] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(true)
@@ -214,11 +211,6 @@ export default function RoadmapDetailPage() {
     const [isDownloading, setIsDownloading] = useState(false)
 
     const handleDownloadPdf = async () => {
-        if (!isPaid && user?.role !== "admin") {
-            setIsSubscriptionModalOpen(true)
-            return
-        }
-
         if (!id || !token) return
 
         setIsDownloading(true)
@@ -322,7 +314,7 @@ export default function RoadmapDetailPage() {
                             {isDownloading ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
                             ) : (
-                                isPaid || user?.role === "admin" ? <Download className="w-4 h-4" /> : <Lock className="w-4 h-4" />
+                                <Download className="w-4 h-4" />
                             )}
                             {isDownloading ? "Generating..." : "Download Roadmap PDF"}
                         </Button>
@@ -410,10 +402,6 @@ export default function RoadmapDetailPage() {
                 <Footer />
             </div>
 
-            <SubscriptionModal
-                isOpen={isSubscriptionModalOpen}
-                onClose={() => setIsSubscriptionModalOpen(false)}
-            />
         </main>
     )
 }

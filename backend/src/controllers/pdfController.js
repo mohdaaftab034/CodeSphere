@@ -235,14 +235,6 @@ export const streamPDF = async (req, res) => {
       return res.status(404).json({ message: "PDF not found" })
     }
 
-    // Premium Check
-    if (pdf.isPremium && (!req.user || (!req.user.isPaid && req.user.role !== "admin"))) {
-      return res.status(403).json({
-        message: "Premium subscription required to access this handwritten note",
-        isPremiumRequired: true
-      })
-    }
-
     const pdfUrl = pdf.pdfUrl
     if (!pdfUrl) {
       return res.status(400).json({ message: "PDF URL missing" })
@@ -351,14 +343,6 @@ export const downloadPDF = async (req, res) => {
 
     if (!pdf) {
       return res.status(404).json({ message: "PDF not found" })
-    }
-
-    // Premium Check
-    if (pdf.isPremium && (!req.user || (!req.user.isPaid && req.user.role !== "admin"))) {
-      return res.status(403).json({
-        message: "Premium subscription required to download this handwritten note",
-        isPremiumRequired: true
-      })
     }
 
     // Increment downloads counter

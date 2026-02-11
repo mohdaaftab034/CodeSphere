@@ -289,20 +289,12 @@ export const deleteRoadmapNode = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-// @desc    Download roadmap as PDF (Premium Feature)
+// @desc    Download roadmap as PDF
 // @route   GET /api/roadmaps/:id/download-pdf
 // @access  Private
 export const downloadRoadmapAsPDF = async (req, res) => {
     try {
         const { id } = req.params;
-
-        // Premium Check
-        if (!req.user || (!req.user.isPaid && req.user.role !== 'admin')) {
-            return res.status(403).json({
-                message: 'Premium subscription required to download roadmap as PDF',
-                isPremiumRequired: true
-            });
-        }
 
         const roadmap = await Roadmap.findById(id);
         if (!roadmap) {
