@@ -8,8 +8,8 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         const lenis = new Lenis({
-            duration: 2.2, // Ultra-slow for premium, stable feel
-            lerp: 0.02, // Extremely smooth interpolation
+            duration: 1.8, // Ultra-slow for premium, stable feel
+            lerp: 0.6, // Extremely smooth interpolation
             infinite: false,
             syncTouch: true,
             wheelMultiplier: 0.6, // Heavy, controlled wheel movement

@@ -600,6 +600,7 @@ export function Navbar() {
               animate="open"
               exit="closed"
               className="md:hidden fixed top-0 right-0 h-full w-[82vw] max-w-sm bg-background border-l border-border shadow-2xl z-[1010] overflow-y-auto"
+              data-lenis-prevent
             >
               {/* User Profile Section in Mobile Menu */}
               {user ? (

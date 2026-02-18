@@ -73,11 +73,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <Link
                 key={item.href}
                 to={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                }`}
+                  }`}
               >
                 <item.icon className="w-5 h-5" />
                 {item.label}
@@ -113,7 +112,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               </div>
               <div>
                 <span className="font-semibold text-foreground text-lg">Admin Panel</span>
-                <p className="text-xs text-muted-foreground">{}</p>
+                <p className="text-xs text-muted-foreground">{ }</p>
               </div>
             </div>
             <button
@@ -132,11 +131,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   key={item.href}
                   to={item.href}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${isActive
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                  }`}
+                    }`}
                 >
                   <item.icon className="w-5 h-5" />
                   {item.label}
@@ -188,7 +186,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto pt-14 lg:pt-0">{children}</main>
+        <main className="flex-1 overflow-y-auto pt-14 lg:pt-0" data-lenis-prevent>{children}</main>
       </div>
     </div>
   )
