@@ -1,5 +1,3 @@
-import express from "express"
-import cors from "cors"
 import dotenv from "dotenv"
 import path from "path"
 import { fileURLToPath } from "url"
@@ -7,7 +5,7 @@ import { fileURLToPath } from "url"
 // Get current directory in ES modules
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-// Load environment variables FIRST with explicit path
+// Load environment variables FIRST with explicit path before any other imports
 const envPath = path.resolve(__dirname, "../.env")
 const result = dotenv.config({ path: envPath })
 if (result.error) {
@@ -15,6 +13,9 @@ if (result.error) {
 } else {
   console.log(`✅ Loaded .env from ${envPath}`)
 }
+
+import express from "express"
+import cors from "cors"
 
 // NOW import modules that depend on environment variables
 import { connectDB } from "./config/database.js"
@@ -27,6 +28,7 @@ import chapterRoutes from "./routes/chapterRoutes.js"
 import contactRoutes from "./routes/contactRoutes.js"
 import subscriptionRoutes from "./routes/subscriptionRoutes.js"
 import roadmapRoutes from "./routes/roadmapRoutes.js"
+import aiRoutes from "./routes/aiRoutes.js"
 
 // Import passport after env is loaded
 import passport from "./config/passport.js"
@@ -83,6 +85,7 @@ app.use("/api/users", userRoutes)
 app.use("/api/contact", contactRoutes)
 app.use("/api/subscription", subscriptionRoutes)
 app.use("/api/roadmaps", roadmapRoutes)
+app.use("/api/ai", aiRoutes)
 
 // 404 handler
 app.use((req, res) => {

@@ -869,3 +869,21 @@ export const subscriptionAPI = {
   },
 }
 
+export const aiAPI = {
+  askDoubt: async (token: string, data: { noteTitle: string; noteContent: string; question: string }) => {
+    const response = await fetch(`${API_BASE_URL}/ai/ask`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    })
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: "Failed to get AI response" }))
+      throw new Error(error.message || "Failed to get AI response")
+    }
+    return response.json()
+  },
+}
+

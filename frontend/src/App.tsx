@@ -37,7 +37,6 @@ import UserProfilePage from "./pages/UserProfilePage.tsx"
 import ManageTopicsPage from "./pages/ManageTopicsPage.tsx"
 import { Toaster } from "react-hot-toast"
 import "./index.css"
-import { ScrollToTop } from "./components/ScrollToTop.tsx"
 
 // Component that wraps routes and waits for auth to load
 function AppRoutes() {
@@ -60,7 +59,6 @@ function AppRoutes() {
 
   return (
     <>
-      <ScrollToTop />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/notes" element={<ProtectedRoute><NotesPage /></ProtectedRoute>} />
@@ -108,12 +106,16 @@ function AppRoutes() {
   )
 }
 
+import { SmoothScroll } from "./components/SmoothScroll.tsx"
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
-        <Toaster position="top-center" reverseOrder={false} />
+        <SmoothScroll>
+          <AppRoutes />
+          <Toaster position="top-center" reverseOrder={false} />
+        </SmoothScroll>
       </AuthProvider>
     </BrowserRouter>
   )

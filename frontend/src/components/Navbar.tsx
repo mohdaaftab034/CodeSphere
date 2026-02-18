@@ -37,7 +37,6 @@ export function Navbar() {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [roadmaps, setRoadmaps] = useState<any[]>([]);
   const [interviewRoles, setInterviewRoles] = useState<string[]>([]);
-  const [isMounted, setIsMounted] = useState(false);
   const iconMap: Record<string, any> = { Code2, BookOpen, Briefcase, Users, Layers, Layout, Server, Cloud, Cpu };
 
   const slugify = (value: string) =>
@@ -93,9 +92,6 @@ export function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -154,18 +150,18 @@ export function Navbar() {
     open: { x: 0, opacity: 1 },
   };
 
-  if (!isMounted) {
-    return null;
-  }
-
   const headerContent = (
     <>
       <motion.header
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ type: "spring", stiffness: 100, damping: 20 }}
-        className={`fixed top-0 left-0 right-0 z-[999] transition-all duration-300 ${scrolled
-          ? "bg-background/60 backdrop-blur-2xl border-b border-border/40 shadow-[0_4px_30px_rgba(0,0,0,0.03)]"
+        initial={{ y: -72, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{
+          duration: 0.6,
+          ease: "easeOut",
+          opacity: { duration: 0.4 }
+        }}
+        className={`fixed top-0 left-0 right-0 z-[999] transition-[background-color,backdrop-filter,border-color,box-shadow] duration-500 ${scrolled
+          ? "bg-background/80 backdrop-blur-2xl border-b border-border/40 shadow-[0_4px_30px_rgba(0,0,0,0.03)]"
           : "bg-transparent border-b border-transparent"
           }`}
       >

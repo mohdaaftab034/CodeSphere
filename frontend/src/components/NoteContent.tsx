@@ -16,6 +16,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { MarkdownRenderer } from "./MarkdownRenderer"
 import { notesAPI, usersAPI } from "../lib/api"
 import { useAuth } from "../contexts/AuthContext"
+import { AIChat } from "./AIChat"
 
 interface ApiNote {
   _id: string
@@ -213,6 +214,9 @@ export function NoteContent({ note, nextNote }: NoteContentProps) {
         >
           <MarkdownRenderer content={note.content} />
         </motion.div>
+
+        {/* AI Chat Feature */}
+        <AIChat noteTitle={note.title} noteContent={note.content} />
 
         {/* Navigation */}
         <motion.div

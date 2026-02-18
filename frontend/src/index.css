@@ -49,10 +49,49 @@
   }
 }
 
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+/* Global Jitter Prevention & Horizontal Lock */
+html,
+body {
+  overflow-x: hidden;
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Custom Premium Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 20px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.4);
+  background-clip: content-box;
+}
+
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
@@ -62,37 +101,31 @@
 /* Hide scrollbars in code blocks */
 @layer utilities {
   .custom-scrollbar {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-  }
-  
-  .custom-scrollbar::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-  }
-  
-  .scrollbar-hide {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE and Edge */
-  }
-  
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-  }
-  
-  /* Hide scrollbars in all code blocks and pre elements */
-  pre,
-  code,
-  .language-*,
-  [class*="language-"] {
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
-  
+
+  .custom-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  pre,
+  code {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
   pre::-webkit-scrollbar,
-  code::-webkit-scrollbar,
-  .language-*::-webkit-scrollbar,
-  [class*="language-"]::-webkit-scrollbar {
+  code::-webkit-scrollbar {
     display: none;
   }
 }
-

@@ -5,8 +5,8 @@ export function ScrollToTop() {
   const { pathname, search } = useLocation()
 
   useEffect(() => {
-    // Always scroll to top on route change
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" })
+    // Use immediate scroll; Lenis manages global smoothness
+    window.scrollTo(0, 0)
   }, [pathname, search])
 
   return null
