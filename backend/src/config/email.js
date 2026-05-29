@@ -15,9 +15,9 @@ const transporter = nodemailer.createTransport({
 // Verify transporter connection
 transporter.verify((error, success) => {
   if (error) {
-    console.error("❌ Email transporter error:", error)
+    console.error("Email transporter error:", error)
   } else if (success) {
-    console.log("✅ Email transporter configured successfully")
+    console.log("Email transporter configured successfully")
   }
 })
 

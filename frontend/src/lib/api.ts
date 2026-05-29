@@ -881,7 +881,17 @@ export const aiAPI = {
     })
     if (!response.ok) {
       const error = await response.json().catch(() => ({ message: "Failed to get AI response" }))
-      throw new Error(error.message || "Failed to get AI response")
+      const aiError = new Error(error.message || "Failed to get AI response") as Error & {
+        status?: number
+        code?: string
+        freeMessageLimit?: number
+        remainingFreeMessages?: number
+      }
+      aiError.status = response.status
+      aiError.code = error.code
+      aiError.freeMessageLimit = error.freeMessageLimit
+      aiError.remainingFreeMessages = error.remainingFreeMessages
+      throw aiError
     }
     return response.json()
   },

@@ -124,7 +124,7 @@ export const createRoadmap = async (req, res) => {
                 const roadmapUrl = `${frontendBaseUrl}/roadmaps/${createdRoadmap._id}`
                 await sendRoadmapPublishedNotification(createdRoadmap, roadmapUrl)
             } catch (notificationError) {
-                console.error("⚠️ Failed to send roadmap notification:", notificationError.message)
+                console.error("Failed to send roadmap notification:", notificationError.message)
             }
         }
 

@@ -16,7 +16,7 @@ const createTransporter = () => {
   const emailPassword = process.env.EMAIL_PASSWORD
 
   if (!emailUser || !emailPassword) {
-    console.error("❌ Email credentials not configured. EMAIL_USER and EMAIL_PASSWORD must be set in .env")
+    console.error("Email credentials not configured. EMAIL_USER and EMAIL_PASSWORD must be set in .env")
     return null
   }
 
@@ -31,7 +31,7 @@ const createTransporter = () => {
 
     return transporter
   } catch (error) {
-    console.error("❌ Failed to create email transporter:", error.message)
+    console.error("Failed to create email transporter:", error.message)
     return null
   }
 }

@@ -66,11 +66,11 @@ try {
         }
       )
     )
-    console.log("✅ Google OAuth strategy configured successfully")
+    console.log("Google OAuth strategy configured successfully")
   } else {
-    console.log("⚠️  Google OAuth credentials not found in environment variables")
-    console.log("   GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID ? "SET" : "NOT SET")
-    console.log("   GOOGLE_CLIENT_SECRET:", process.env.GOOGLE_CLIENT_SECRET ? "SET" : "NOT SET")
+    console.log("Google OAuth credentials not found in environment variables")
+    console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID ? "SET" : "NOT SET")
+    console.log("GOOGLE_CLIENT_SECRET:", process.env.GOOGLE_CLIENT_SECRET ? "SET" : "NOT SET")
   }
 } catch (error) {
   console.error("❌ Error configuring Google OAuth:", error.message)

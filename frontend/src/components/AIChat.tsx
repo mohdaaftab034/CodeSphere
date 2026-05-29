@@ -1,9 +1,8 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import {
   Send,
   Sparkles,
-  Lock,
   Loader2,
   MessageSquare,
   AlertCircle,
@@ -27,21 +26,37 @@ interface Message {
   content: string;
 }
 
+const FREE_AI_MESSAGE_LIMIT = 10
+
 export function AIChat({ noteTitle, noteContent }: AIChatProps) {
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { isPaid, token } = useAuth();
+  const { isPaid, token, user } = useAuth();
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [aiMessagesUsed, setAiMessagesUsed] = useState(user?.aiMessagesUsed || 0);
+
+  useEffect(() => {
+    setAiMessagesUsed(user?.aiMessagesUsed || 0);
+  }, [user?.aiMessagesUsed]);
+
+  const freeMessagesRemaining = isPaid ? null : Math.max(FREE_AI_MESSAGE_LIMIT - aiMessagesUsed, 0);
+  const hasFreeAccessRemaining = isPaid || (freeMessagesRemaining ?? 0) > 0;
 
   // Automatic scroll to bottom removed per user request to maintain reading position
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim() || isLoading || !token) return;
+
+    if (!hasFreeAccessRemaining) {
+      setError("You have used all 10 free AI messages. Subscribe to continue.");
+      setShowSubscribeModal(true);
+      return;
+    }
 
     const userMessage = question.trim();
     setQuestion("");
@@ -62,6 +77,12 @@ export function AIChat({ noteTitle, noteContent }: AIChatProps) {
       });
 
       if (response.success) {
+        if (response.usage?.aiMessagesUsed !== undefined && response.usage?.aiMessagesUsed !== null) {
+          setAiMessagesUsed(response.usage.aiMessagesUsed);
+        } else if (!isPaid) {
+          setAiMessagesUsed((currentValue) => currentValue + 1);
+        }
+
         setMessages((prev) => [
           ...prev,
           {
@@ -74,9 +95,15 @@ export function AIChat({ noteTitle, noteContent }: AIChatProps) {
         throw new Error(response.message || "Failed to get answer");
       }
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Something went wrong.";
-      setError(errorMessage);
+      const errorWithMeta = err as Error & { status?: number; code?: string; remainingFreeMessages?: number };
+      if (errorWithMeta.status === 403 && errorWithMeta.code === "SUBSCRIPTION_REQUIRED") {
+        setError(errorWithMeta.message);
+        setShowSubscribeModal(true);
+      } else {
+        const errorMessage =
+          err instanceof Error ? err.message : "Something went wrong.";
+        setError(errorMessage);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -181,155 +208,149 @@ export function AIChat({ noteTitle, noteContent }: AIChatProps) {
         )}
       </div>
 
-      {!isPaid ? (
-        /* Enhanced Paywall UI */
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="relative overflow-hidden rounded-3xl border-2 border-dashed border-primary/20 bg-secondary/10 p-12 text-center"
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
-          <div className="relative z-10 flex flex-col items-center">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 text-primary animate-bounce">
-              <Lock className="w-8 h-8" />
+      <div className="space-y-8">
+        {!isPaid && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`flex items-center justify-between gap-4 rounded-3xl border p-5 ${hasFreeAccessRemaining ? "border-primary/15 bg-primary/5" : "border-amber-300/40 bg-amber-500/10"}`}
+          >
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                {hasFreeAccessRemaining ? `${freeMessagesRemaining} free AI message${freeMessagesRemaining === 1 ? "" : "s"} left` : "Free AI quota reached"}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {hasFreeAccessRemaining
+                  ? "You can continue asking questions until you hit the 10-message limit."
+                  : "Subscribe to keep using the AI Doubt Solver."}
+              </p>
             </div>
-            <h3 className="text-xl font-bold mb-3">Elevate Your Learning</h3>
-            <p className="text-muted-foreground max-w-sm mb-8 leading-relaxed">
-              Get instant explanations, code breakdowns, and deep-dives into
-              your notes with our Pro AI model.
-            </p>
-            <Button
-              onClick={() => setShowSubscribeModal(true)}
-              size="lg"
-              className="rounded-full px-10 font-bold hover:scale-105 transition-transform shadow-xl shadow-primary/30"
-            >
-              Upgrade to Pro
+            <Button onClick={() => setShowSubscribeModal(true)} className="rounded-full px-5 font-semibold" size="sm">
+              Subscribe
             </Button>
-          </div>
-        </motion.div>
-      ) : (
-        <div className="space-y-8">
-          {/* Chat Area */}
-          <div className="min-h-[100px] space-y-6">
-            <LayoutGroup>
-              <AnimatePresence mode="popLayout" initial={false}>
-                {messages.length === 0 && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="text-center py-12 border rounded-3xl border-dashed bg-secondary/5"
+          </motion.div>
+        )}
+
+        {/* Chat Area */}
+        <div className="min-h-[100px] space-y-6">
+          <LayoutGroup>
+            <AnimatePresence mode="popLayout" initial={false}>
+              {messages.length === 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-12 border rounded-3xl border-dashed bg-secondary/5"
+                >
+                  <MessageSquare className="w-10 h-10 mx-auto mb-4 text-muted-foreground/40" />
+                  <p className="text-muted-foreground italic">
+                    No questions yet. Try asking "Explain the core concepts of {noteTitle}"
+                  </p>
+                </motion.div>
+              )}
+              {messages.map((msg) => (
+                <motion.div
+                  key={msg.id}
+                  layout
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  className={`flex gap-4 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+                >
+                  <div
+                    className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${msg.role === "user"
+                      ? "bg-primary text-white"
+                      : "bg-card border border-border text-primary"
+                      }`}
                   >
-                    <MessageSquare className="w-10 h-10 mx-auto mb-4 text-muted-foreground/40" />
-                    <p className="text-muted-foreground italic">
-                      No questions yet. Try asking "Explain the core concepts of{" "}
-                      {noteTitle}"
-                    </p>
-                  </motion.div>
-                )}
-                {messages.map((msg) => (
-                  <motion.div
-                    key={msg.id}
-                    layout
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    className={`flex gap-4 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
+                    {msg.role === "user" ? (
+                      <MessageSquare className="w-5 h-5" />
+                    ) : (
+                      <Sparkles className="w-5 h-5" />
+                    )}
+                  </div>
+
+                  <div
+                    className={`max-w-[85%] rounded-2xl p-5 shadow-sm transition-all ${msg.role === "user"
+                      ? "bg-primary text-primary-foreground rounded-tr-none"
+                      : "bg-card border border-border rounded-tl-none"
+                      }`}
                   >
-                    <div
-                      className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm ${msg.role === "user"
-                        ? "bg-primary text-white"
-                        : "bg-card border border-border text-primary"
-                        }`}
-                    >
-                      {msg.role === "user" ? (
-                        <MessageSquare className="w-5 h-5" />
-                      ) : (
-                        <Sparkles className="w-5 h-5" />
-                      )}
-                    </div>
+                    {msg.role === "user" ? (
+                      <p className="leading-relaxed">{msg.content}</p>
+                    ) : (
+                      <div className="prose prose-sm dark:prose-invert max-w-none">
+                        <MarkdownRenderer content={msg.content} />
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </LayoutGroup>
 
-                    <div
-                      className={`max-w-[85%] rounded-2xl p-5 shadow-sm transition-all ${msg.role === "user"
-                        ? "bg-primary text-primary-foreground rounded-tr-none"
-                        : "bg-card border border-border rounded-tl-none"
-                        }`}
-                    >
-                      {msg.role === "user" ? (
-                        <p className="leading-relaxed">{msg.content}</p>
-                      ) : (
-                        <div className="prose prose-sm dark:prose-invert max-w-none">
-                          <MarkdownRenderer content={msg.content} />
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </LayoutGroup>
-
-            {isLoading && (
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex gap-4 items-center"
-              >
-                <div className="w-10 h-10 rounded-2xl bg-secondary flex items-center justify-center">
-                  <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                </div>
-                <div className="px-5 py-3 bg-secondary/40 rounded-2xl text-sm font-medium animate-pulse text-primary">
-                  Analyzing notes and drafting response...
-                </div>
-              </motion.div>
-            )}
-
-            {error && (
-              <motion.div
-                layout
-                className="p-4 rounded-2xl bg-destructive/5 border border-destructive/20 text-destructive text-sm flex items-center gap-3"
-              >
-                <AlertCircle className="w-5 h-5" />
-                <span className="font-medium">{error}</span>
-              </motion.div>
-            )}
-            <div ref={chatEndRef} className="h-4" />
-          </div>
-
-          {/* Modern Glassmorphic Input */}
-          <div className="sticky bottom-6">
-            <form
-              onSubmit={handleSubmit}
-              className="relative flex items-end gap-2 p-2 rounded-[24px] bg-background/80 backdrop-blur-xl border border-primary/10 shadow-2xl focus-within:border-primary/30 transition-all"
+          {isLoading && (
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="flex gap-4 items-center"
             >
-              <textarea
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit(e);
-                  }
-                }}
-                placeholder="Ask a follow-up question..."
-                className="w-full outline-none bg-transparent border-none focus:ring-0 p-4 min-h-[56px] max-h-[200px] text-foreground resize-none"
-              />
-              <Button
-                type="submit"
-                disabled={!question.trim() || isLoading}
-                size="icon"
-                className="mb-2 mr-2 w-12 h-12 rounded-2xl shrink-0 shadow-lg transition-all active:scale-95"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Send className="w-5 h-5" />
-                )}
-              </Button>
-            </form>
-            <p className="mt-3 text-[11px] text-center text-muted-foreground/60">
-              Powered by CodeSphere Pro • AI may produce inaccurate results.
-            </p>
-          </div>
+              <div className="w-10 h-10 rounded-2xl bg-secondary flex items-center justify-center">
+                <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              </div>
+              <div className="px-5 py-3 bg-secondary/40 rounded-2xl text-sm font-medium animate-pulse text-primary">
+                Analyzing notes and drafting response...
+              </div>
+            </motion.div>
+          )}
+
+          {error && (
+            <motion.div
+              layout
+              className="p-4 rounded-2xl bg-destructive/5 border border-destructive/20 text-destructive text-sm flex items-center gap-3"
+            >
+              <AlertCircle className="w-5 h-5" />
+              <span className="font-medium">{error}</span>
+            </motion.div>
+          )}
+          <div ref={chatEndRef} className="h-4" />
         </div>
-      )}
+
+        {/* Modern Glassmorphic Input */}
+        <div className="sticky bottom-6">
+          <form
+            onSubmit={handleSubmit}
+            className="relative flex items-end gap-2 p-2 rounded-[24px] bg-background/80 backdrop-blur-xl border border-primary/10 shadow-2xl focus-within:border-primary/30 transition-all"
+          >
+            <textarea
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+              placeholder={hasFreeAccessRemaining ? "Ask a follow-up question..." : "Subscribe to ask more questions..."}
+              disabled={!hasFreeAccessRemaining || isLoading}
+              className="w-full outline-none bg-transparent border-none focus:ring-0 p-4 min-h-[56px] max-h-[200px] text-foreground resize-none disabled:cursor-not-allowed disabled:opacity-60"
+            />
+            <Button
+              type="submit"
+              disabled={!question.trim() || isLoading || !hasFreeAccessRemaining}
+              size="icon"
+              className="mb-2 mr-2 w-12 h-12 rounded-2xl shrink-0 shadow-lg transition-all active:scale-95"
+            >
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
+            </Button>
+          </form>
+          <p className="mt-3 text-[11px] text-center text-muted-foreground/60">
+            Powered by Groq • AI may produce inaccurate results.
+          </p>
+        </div>
+      </div>
     </section>
   );
 }

@@ -1,8 +1,6 @@
 import PDFDocument from "pdfkit"
 
-/**
- * Helper to render inline markdown with proper formatting
- */
+
 export const renderInlineMarkdown = (doc, text, options = {}) => {
     const { lineGap = 4, continued = false } = options
 

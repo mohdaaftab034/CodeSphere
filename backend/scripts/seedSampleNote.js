@@ -47,10 +47,10 @@ async function seedNote() {
     if (existing) {
       console.log("Sample note already exists, updating it...")
       await Note.findByIdAndUpdate(existing._id, sampleNote)
-      console.log("✅ Note updated successfully")
+      console.log("Note updated successfully")
     } else {
       await Note.create(sampleNote)
-      console.log("✅ Sample note created successfully")
+      console.log("Sample note created successfully")
     }
 
     process.exit(0)

@@ -25,6 +25,9 @@ JWT_SECRET=your_jwt_secret_key_change_in_production
 JWT_EXPIRE=7d
 PORT=5000
 NODE_ENV=development
+GROQ_API_KEY=your_groq_api_key
+
+The AI Doubt Solver uses Groq and allows 10 free messages per user before requiring an active subscription. The backend also applies request rate limiting on the AI endpoint.
 ```
 
 ### 3. Start MongoDB

@@ -70,7 +70,7 @@ async function createAdmin() {
       if (existingAdmin.role !== "admin") {
         existingAdmin.role = "admin"
         await existingAdmin.save()
-        console.log("✅ User role updated to admin")
+        console.log("User role updated to admin")
       }
       
       process.exit(0)
@@ -87,10 +87,10 @@ async function createAdmin() {
       role: "admin",
     })
 
-    console.log("✅ Admin user created successfully!")
-    console.log("📧 Email:", admin.email)
-    console.log("🔑 Password: Aaftab@123")
-    console.log("👤 Role:", admin.role)
+    console.log("Admin user created successfully!")
+    console.log("Email:", admin.email)
+    console.log("Password: Aaftab@123")
+    console.log("Role:", admin.role)
     
     // Also create admin@example.com if it doesn't exist
     try {
@@ -100,20 +100,20 @@ async function createAdmin() {
         password: hashedPassword,
         role: "admin",
       })
-      console.log("✅ Alternative admin account created: admin@example.com")
+      console.log("Alternative admin account created: admin@example.com")
     } catch (altError) {
       if (altError.code === 11000) {
         // Email already exists, update it to admin
         const existing = await User.findOne({ email: "admin@example.com" })
         existing.role = "admin"
         await existing.save()
-        console.log("✅ Existing admin@example.com account upgraded to admin role")
+        console.log("Existing admin@example.com account upgraded to admin role")
       }
     }
 
     process.exit(0)
   } catch (error) {
-    console.error("❌ Error creating admin:", error.message)
+    console.error("Error creating admin:", error.message)
     process.exit(1)
   }
 }

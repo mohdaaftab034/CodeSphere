@@ -68,7 +68,7 @@
     "parentId": "mern"
   },
   {
-    "id": "authentication",
+    "id": "authentication-security",
     "name": "Authentication & Security",
     "level": "Intermediate",
     "description": "JWT, OAuth, and secure authentication patterns",
@@ -77,14 +77,15 @@
     "parentId": "mern"
   },
   {
-    "id": "dsa",
+    "id": "data-structures-algorithms",
     "name": "Data Structures & Algorithms",
     "level": "Intermediate",
     "description": "Essential DSA concepts and interview prep",
     "icon": "Briefcase",
     "gradient": "from-violet-500/80 to-purple-500/80",
     "hasSubChapters": false,
-    "topicCount": 8
+    "topicCount": 8,
+    "navPath": "/notes/data-structures-algorithms"
   },
   {
     "id": "system-design",

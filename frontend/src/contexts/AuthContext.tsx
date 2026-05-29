@@ -7,6 +7,7 @@ interface User {
   role: "admin" | "user"
   isPaid: boolean
   subscriptionExpiresAt?: string | null
+  aiMessagesUsed?: number
   avatar?: string
   authProvider?: "local" | "google"
 }

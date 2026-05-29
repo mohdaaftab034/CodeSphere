@@ -15,7 +15,7 @@ const importData = async () => {
 
     const chaptersPath = path.join(__dirname, "../../frontend/public/chapters.json")
     if (!fs.existsSync(chaptersPath)) {
-      console.error("❌ chapters.json not found")
+      console.error("chapters.json not found")
       process.exit(1)
     }
 
@@ -44,13 +44,13 @@ const importData = async () => {
 
     if (operations.length > 0) {
       const result = await Chapter.bulkWrite(operations)
-      console.log(`✅ Bulk write complete. Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}, Upserted: ${result.upsertedCount}`)
+      console.log(`Bulk write complete. Matched: ${result.matchedCount}, Modified: ${result.modifiedCount}, Upserted: ${result.upsertedCount}`)
     }
 
-    console.log("✅ Chapters Imported/Updated Successfully!")
+    console.log("Chapters Imported/Updated Successfully!")
     process.exit(0)
   } catch (error) {
-    console.error("❌ Error with data import:", error)
+    console.error("Error with data import:", error)
     process.exit(1)
   }
 }

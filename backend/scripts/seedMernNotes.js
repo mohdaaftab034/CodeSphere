@@ -612,13 +612,13 @@ async function seedMernNotes() {
       if (!existing) {
         await Note.create(note)
         addedCount++
-        console.log(`✅ Added: ${note.title}`)
+        console.log(`Added: ${note.title}`)
       } else {
-        console.log(`⏭️  Skipped: ${note.title} (already exists)`)
+        console.log(`Skipped: ${note.title} (already exists)`)
       }
     }
 
-    console.log(`\n📚 Seeding complete! Added ${addedCount} new notes.`)
+    console.log(`\nSeeding complete! Added ${addedCount} new notes.`)
     process.exit(0)
   } catch (error) {
     console.error("Error seeding notes:", error)

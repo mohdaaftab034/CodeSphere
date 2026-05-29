@@ -18,43 +18,43 @@ export const initializeInterviewQuestionScheduler = (cronTime = "0 9 * * *") => 
     // Cancel any existing task
     if (scheduledTasks.interviewQuestion) {
       scheduledTasks.interviewQuestion.stop()
-      console.log("⏹️  Stopped existing interview question scheduler")
+      console.log("⏹Stopped existing interview question scheduler")
     }
 
     // Schedule the task
     const task = cron.schedule(cronTime, async () => {
       try {
-        console.log("📅 Running scheduled interview question task...")
+        console.log("Running scheduled interview question task...")
 
         // Fetch a random published interview question
         const questions = await InterviewQuestion.find({ isPublished: true }).lean()
 
         if (questions.length === 0) {
-          console.log("⚠️ No published interview questions available")
+          console.log("No published interview questions available")
           return
         }
 
         // Select a random question
         const randomQuestion = questions[Math.floor(Math.random() * questions.length)]
 
-        console.log(`✅ Publishing daily interview question: "${randomQuestion.question || randomQuestion.title || 'Question'}"`)
+        console.log(`Publishing daily interview question: "${randomQuestion.question || randomQuestion.title || 'Question'}"`)
 
         // Send notification to all users with direct link to the question
         const questionUrl = `${frontendBaseUrl}/interview/question/${randomQuestion._id}`
         await sendInterviewQuestionNotification(randomQuestion, questionUrl)
 
-        console.log("✅ Daily interview question notification sent successfully")
+        console.log("Daily interview question notification sent successfully")
       } catch (error) {
-        console.error("❌ Error in interview question scheduler:", error.message)
+        console.error("Error in interview question scheduler:", error.message)
       }
     })
 
     scheduledTasks.interviewQuestion = task
-    console.log(`✅ Interview question scheduler initialized - Cron: ${cronTime}`)
+    console.log(`Interview question scheduler initialized - Cron: ${cronTime}`)
 
     return task
   } catch (error) {
-    console.error("❌ Failed to initialize interview question scheduler:", error.message)
+    console.error("Failed to initialize interview question scheduler:", error.message)
   }
 }
 
@@ -65,7 +65,7 @@ export const stopInterviewQuestionScheduler = () => {
   if (scheduledTasks.interviewQuestion) {
     scheduledTasks.interviewQuestion.stop()
     delete scheduledTasks.interviewQuestion
-    console.log("⏹️  Interview question scheduler stopped")
+    console.log("Interview question scheduler stopped")
   }
 }
 

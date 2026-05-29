@@ -81,6 +81,10 @@ const userSchema = new mongoose.Schema(
     razorpayOrderId: {
       type: String,
     },
+    aiMessagesUsed: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 )

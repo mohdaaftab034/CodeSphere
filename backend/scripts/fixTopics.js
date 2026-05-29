@@ -23,8 +23,6 @@ const fix = async () => {
         )
         console.log("Updated DSA:", dsa ? "Success" : "Not Found")
 
-        // Update others if needed? User said "same for others topics"
-        // Maybe update slugs to be full words?
 
         process.exit(0)
     } catch (error) {

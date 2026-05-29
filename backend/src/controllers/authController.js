@@ -92,6 +92,7 @@ export const verifyOtp = async (req, res) => {
         authProvider: user.authProvider || "local",
         isPaid: isPaid,
         subscriptionExpiresAt: user.subscriptionExpiresAt,
+        aiMessagesUsed: user.aiMessagesUsed || 0,
       },
     });
   } catch (error) {
@@ -220,9 +221,6 @@ export const googleCallback = async (req, res) => {
       throw new Error("User not found")
     }
 
-    // Determine if this is a new user by checking createdAt timestamp
-    // A more reliable approach: check if user was created very recently (within 2 minutes)
-    // This accounts for any delays in the OAuth flow
     let isNewUser = false
     if (user.createdAt) {
       const userCreatedAt = new Date(user.createdAt)
@@ -250,14 +248,12 @@ export const googleCallback = async (req, res) => {
     }
 
     // ALWAYS send welcome email for new users or login notification for existing users
-    // This ensures users always receive an email notification when they sign up or log in
-    // We send this asynchronously so it doesn't block the OAuth redirect
     try {
       console.log(`[Google OAuth] Preparing to send ${isNewUser ? 'welcome' : 'login'} email to ${user.email}`)
       
       // Validate user has required fields
       if (!user.email) {
-        console.error(`❌ [Google OAuth] Cannot send email: user email is missing`)
+        console.error(`[Google OAuth] Cannot send email: user email is missing`)
       } else {
         const emailResult = await sendWelcomeEmail(
           {
@@ -268,9 +264,9 @@ export const googleCallback = async (req, res) => {
         )
         
         if (emailResult.success) {
-          console.log(`✅ [Google OAuth] ${isNewUser ? 'Welcome' : 'Login'} email sent successfully to ${user.email}`)
+          console.log(`[Google OAuth] ${isNewUser ? 'Welcome' : 'Login'} email sent successfully to ${user.email}`)
         } else {
-          console.error(`❌ [Google OAuth] Failed to send email to ${user.email}:`, emailResult.error)
+          console.error(`[Google OAuth] Failed to send email to ${user.email}:`, emailResult.error)
           if (emailResult.code) {
             console.error(`   Error code: ${emailResult.code}`)
           }
@@ -278,7 +274,7 @@ export const googleCallback = async (req, res) => {
       }
     } catch (emailError) {
       // Don't fail the OAuth flow if email fails, but log the error for debugging
-      console.error(`❌ [Google OAuth] Exception sending ${isNewUser ? 'welcome' : 'login'} email to ${user.email}:`, emailError.message)
+      console.error(`[Google OAuth] Exception sending ${isNewUser ? 'welcome' : 'login'} email to ${user.email}:`, emailError.message)
       console.error("Email error stack:", emailError.stack)
     }
 
@@ -296,6 +292,7 @@ export const googleCallback = async (req, res) => {
       authProvider: user.authProvider || "google",
       isPaid: isPaid,
       subscriptionExpiresAt: user.subscriptionExpiresAt,
+      aiMessagesUsed: user.aiMessagesUsed || 0,
     }))}`)
   } catch (error) {
     const frontendURL = process.env.FRONTEND_URL || "http://localhost:5173"

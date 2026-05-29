@@ -9,9 +9,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const envPath = path.resolve(__dirname, "../.env")
 const result = dotenv.config({ path: envPath })
 if (result.error) {
-  console.warn(`⚠️  Could not load .env file from ${envPath}:`, result.error.message)
+  console.warn(`Could not load .env file from ${envPath}:`, result.error.message)
 } else {
-  console.log(`✅ Loaded .env from ${envPath}`)
+  console.log(`Loaded .env from ${envPath}`)
 }
 
 import express from "express"

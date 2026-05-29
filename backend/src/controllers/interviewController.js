@@ -139,7 +139,7 @@ export const createInterviewQuestion = async (req, res) => {
       const questionUrl = `${frontendBaseUrl}/interview/question/${question._id}`
       await sendInterviewQuestionNotification(question, questionUrl)
     } catch (notificationError) {
-      console.error("⚠️ Failed to send interview question notification:", notificationError.message)
+      console.error("Failed to send interview question notification:", notificationError.message)
       // Don't fail the request if notification fails
     }
 

@@ -7,7 +7,6 @@ export const protect = async (req, res, next) => {
     let token = authHeader?.split(" ")[1]
 
     if (!token) {
-      console.log("❌ [Auth] No token found in Authorization header")
       return res.status(401).json({ message: "Not authenticated" })
     }
 
@@ -21,19 +20,16 @@ export const protect = async (req, res, next) => {
       }
       decoded = jwt.verify(token, process.env.JWT_SECRET)
     } catch (jwtError) {
-      console.log(`❌ [Auth] JWT verification failed for user: ${jwtError.message}`)
       return res.status(401).json({ message: `Invalid token: ${jwtError.message}` })
     }
 
     const user = await User.findById(decoded.id)
     if (!user) {
-      console.log(`❌ [Auth] User not found for ID: ${decoded.id}`)
       return res.status(404).json({ message: "User not found" })
     }
 
     // Check if subscription has expired
     if (user.isPaid && user.subscriptionExpiresAt && new Date() > new Date(user.subscriptionExpiresAt)) {
-      console.log(`⏰ [Auth] Subscription expired for user ${user.email}`)
       user.isPaid = false
       user.subscriptionExpiresAt = null
       await user.save()
@@ -42,7 +38,7 @@ export const protect = async (req, res, next) => {
     req.user = user
     next()
   } catch (error) {
-    console.error("❌ [Auth] Middleware error:", error)
+    console.error("[Auth] Middleware error:", error)
     res.status(500).json({ message: "Internal server error", error: error.message })
   }
 }
